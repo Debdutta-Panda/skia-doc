@@ -1,0 +1,20 @@
+---
+sidebar_position: 2
+---
+
+# DrawScene
+```cpp
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SkColorSetRGB(244, 241, 234));
+
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setColor(SkColorSetARGB(255, 34, 91, 191));
+
+    const float rectWidth = std::max(1.0f, std::min(320.0f, static_cast<float>(state.width) - 80.0f));
+    const float rectHeight = std::max(1.0f, std::min(180.0f, static_cast<float>(state.height) - 80.0f));
+    canvas->drawRect(SkRect::MakeXYWH(40.0f, 40.0f, rectWidth, rectHeight), paint);
+}
+```
+This is the function where most of the time we will live.
