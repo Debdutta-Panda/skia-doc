@@ -90,7 +90,38 @@ canvas->drawOval(rect, paint);
 
 ![](/img/image6.png)
 
+# DrawRRect
 
+`void drawRRect(const SkRRect& rrect, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+SkRect rect = {100,100,200,300};
+SkRRect rrect = SkRRect::MakeRectXY(rect, 20,20);
+canvas->drawRRect(rrect, paint);
+```
+
+![](/img/image7.png)
+
+# DrawDRRect
+`void drawDRRect(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+SkRect rect1 = { 100,100,200,300 };
+SkRect rect2 = {110,110,190,290};
+SkRRect rrect1 = SkRRect::MakeRectXY(rect1, 20, 20);
+SkRRect rrect2 = SkRRect::MakeRectXY(rect2, 20,20);
+canvas->drawDRRect(rrect1, rrect2, paint);
+```
+
+![](/img/image8.png)
 
 # Apis
 
