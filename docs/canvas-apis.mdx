@@ -526,3 +526,67 @@ namespace skiaexplorer {
 }
 ```
 
+## DrawString
+
+`void drawString(const char str[], SkScalar x, SkScalar y, const SkFont& font, const SkPaint& paint)`
+
+`void drawString(const SkString& str, SkScalar x, SkScalar y, const SkFont& font, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+
+const char* text = "Hello Skia Doc";
+skiaexplorer::FontSystem fonts;
+fonts.Initialize();
+SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 28.0f);
+font.setSize(40);  // text size
+
+SkPaint paint;
+paint.setColor(SK_ColorBLACK);
+paint.setAntiAlias(true);
+
+canvas->drawString(
+    text,                 // byte length
+    50,                           // x
+    100,                          // baseline y
+    font,
+    paint
+);
+```
+
+![](/img/image16.png)
+
+## DrawDrawable
+
+`void drawDrawable(SkDrawable* drawable, const SkMatrix* matrix = nullptr);`
+
+`void drawDrawable(SkDrawable* drawable, SkScalar x, SkScalar y);`
+
+Example:
+```cpp
+struct MyDrawable : public SkDrawable {
+    SkRect onGetBounds() override { return SkRect::MakeWH(50, 100); }
+    void onDraw(SkCanvas* canvas) override {
+        SkPath path = SkPathBuilder()
+            .conicTo(10, 90, 50, 90, 0.9f)
+            .detach();
+        SkPaint paint;
+        paint.setColor(SK_ColorBLUE);
+        canvas->drawRect(path.getBounds(), paint);
+        paint.setAntiAlias(true);
+        paint.setColor(SK_ColorWHITE);
+        canvas->drawPath(path, paint);
+    }
+};
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);        
+    sk_sp<SkDrawable> drawable(new MyDrawable);
+    SkMatrix matrix;
+    matrix.setTranslate(10, 10);
+    canvas->drawDrawable(drawable.get(), &matrix);
+}
+```
+
+![](/img/image17.png)
