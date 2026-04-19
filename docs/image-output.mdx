@@ -1,0 +1,45 @@
+---
+sidebar_position: 6
+---
+# Image Output
+
+```cpp
+void DrawAndSavePng()
+{
+    const int width = 400;
+    const int height = 300;
+
+    auto surface = SkSurfaces::Raster(
+        SkImageInfo::MakeN32Premul(width, height)
+    );
+    if (!surface) return;
+
+    SkCanvas* canvas = surface->getCanvas();
+    canvas->clear(SK_ColorWHITE);
+
+    SkPaint paint;
+    paint.setAntiAlias(true);
+
+    paint.setColor(SK_ColorBLUE);
+    canvas->drawRect(SkRect::MakeXYWH(40, 40, 140, 90), paint);
+
+    paint.setColor(SK_ColorRED);
+    canvas->drawCircle(250, 120, 50, paint);
+
+    paint.setColor(SK_ColorBLACK);
+    paint.setStrokeWidth(4);
+    paint.setStyle(SkPaint::kStroke_Style);
+    canvas->drawLine(40, 220, 340, 220, paint);
+
+    sk_sp<SkImage> image = surface->makeImageSnapshot();
+    if (!image) return;
+
+    sk_sp<SkData> png = SkPngEncoder::Encode(nullptr, image.get(), {});
+    if (!png) return;
+
+    SkFILEWStream out("F:\\output.png");
+    out.write(png->data(), png->size());
+}
+```
+
+![](/img/image34.png)

@@ -172,3 +172,128 @@ canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
 ```
 
 ![](/img/image27.png)
+
+## setShader
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+std::array<SkColor4f, 3> colors = {
+    SkColors::kRed,
+    SkColors::kYellow,
+    SkColors::kBlue
+};
+std::array<float, 3> pos = { 0.0f, 0.5f, 1.0f };
+
+SkGradient grad = {
+    { colors, pos, SkTileMode::kClamp }, // colors, stops, tile mode
+    {}                                   // default interpolation
+};
+
+// attach gradient shader to the paint
+SkPoint pts[2] = { {0, 0}, {300, 0} };
+paint.setShader(SkShaders::LinearGradient(pts, grad));
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);
+SkScalar intervals[] = { 20, 14 };
+auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
+auto dash = SkDashPathEffect::Make(intervals, 5);
+paint.setPathEffect(SkPathEffect::MakeSum(
+    dash, // outer
+    trim  // inner
+));
+paint.setStrokeCap(SkPaint::kRound_Cap);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image28.png)
+
+
+## setStrokeJoin
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);        
+paint.setStrokeCap(SkPaint::kRound_Cap);
+paint.setStrokeJoin(SkPaint::kRound_Join);
+canvas->drawRoundRect({ 40,40,200,300 }, 0, 0, paint);
+```
+
+![](/img/image29.png)
+
+## setColorFilter
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+std::filesystem::path path = "C:\\Users\\deb\\Downloads\\sunflower.jpg";
+const std::string narrowPath = path.string();
+sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+SkColorMatrix matrix;
+matrix.setSaturation(0.0f);
+SkPaint paint;
+paint.setColorFilter(SkColorFilters::Matrix(matrix));
+canvas->drawImage(image, 100, 100, SkSamplingOptions(), &paint);
+```
+
+![](/img/image30.png)
+
+## setBlendMode
+
+Example: 
+
+```cpp
+SkPaint paint;
+
+paint.setColor(SK_ColorBLUE);
+canvas->drawRect(SkRect::MakeXYWH(40, 40, 120, 120), paint);
+
+paint.setColor(SK_ColorRED);
+paint.setBlendMode(SkBlendMode::kScreen);
+canvas->drawCircle(120, 120, 60, paint);
+```
+
+![](/img/image31.png)
+
+## setMaskFilter
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorBLUE);
+paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, 8.0f));
+canvas->drawCircle(120, 120, 50, paint);
+```
+
+![](/img/image32.png)
+
+## setImageFilter
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setImageFilter(SkImageFilters::Blur(8.0f, 8.0f, nullptr));
+
+canvas->drawRect(SkRect::MakeXYWH(40, 40, 160, 100), paint);
+```
+
+![](/img/image33.png)

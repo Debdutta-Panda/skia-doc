@@ -1,0 +1,132 @@
+---
+sidebar_position: 7
+---
+
+# Unicode Text Layout
+
+```cpp
+std::unique_ptr<skia::textlayout::Paragraph> paragraph = nullptr;
+skiaexplorer::FontSystem fonts;
+
+std::unique_ptr<skia::textlayout::Paragraph> BuildParagraph(skiaexplorer::FontSystem& fonts)
+{
+    using namespace skia::textlayout;
+
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.setTextAlign(TextAlign::kLeft);
+
+    TextStyle base;
+    base.setFontSize(25.0f);
+    base.setColor(SK_ColorBLACK);
+    base.setFontFamilies({ SkString("Segoe UI"), SkString("Noto Sans"), SkString("Arial Unicode MS") });
+
+    auto builder = ParagraphBuilder::make(paragraphStyle, fonts.GetCollection(), fonts.GetUnicode());
+
+    builder->pushStyle(base);
+    builder->addText("Raw Skia backend explorer\n");
+    builder->pop();
+
+    TextStyle bold = base;
+    bold.setFontStyle(SkFontStyle::Bold());
+    bold.setColor(SkColorSetRGB(25, 90, 180));
+    builder->pushStyle(bold);
+    builder->addText("Bold English");
+    builder->pop();
+
+    builder->pushStyle(base);
+    builder->addText(" with ");
+    builder->pop();
+
+    TextStyle italic = base;
+    italic.setFontStyle(SkFontStyle::Italic());
+    italic.setColor(SkColorSetRGB(180, 60, 40));
+    builder->pushStyle(italic);
+    builder->addText("italic emphasis");
+    builder->pop();
+
+    builder->pushStyle(base);
+    builder->addText(", ");
+    builder->pop();
+
+    TextStyle underline = base;
+    underline.setDecoration(TextDecoration::kUnderline);
+    underline.setDecorationColor(SkColorSetRGB(0, 140, 90));
+    underline.setDecorationStyle(TextDecorationStyle::kSolid);
+    builder->pushStyle(underline);
+    builder->addText("underline");
+    builder->pop();
+
+    builder->pushStyle(base);
+    builder->addText(", and ");
+    builder->pop();
+
+    TextStyle strike = base;
+    strike.setDecoration(TextDecoration::kLineThrough);
+    strike.setDecorationColor(SkColorSetRGB(160, 40, 120));
+    strike.setColor(SkColorSetRGB(90, 90, 90));
+    builder->pushStyle(strike);
+    builder->addText("strike-through");
+    builder->pop();
+
+    builder->pushStyle(base);
+    builder->addText(".\n");
+    builder->pop();
+
+    TextStyle bangla = base;
+    bangla.setColor(SkColorSetRGB(0, 110, 70));
+    bangla.setFontStyle(SkFontStyle::Bold());
+    builder->pushStyle(bangla);
+    builder->addText("Bangla: বাংলা লেখা, রঙ, গতি, আলো, মুভমেন্ট.\n");
+    builder->pop();
+
+    TextStyle japanese = base;
+    japanese.setColor(SkColorSetRGB(120, 50, 160));
+    japanese.setFontStyle(SkFontStyle::Italic());
+    builder->pushStyle(japanese);
+    builder->addText("Japanese: 日本語の段落, タイポグラフィ, 編集, スクロール.\n");
+    builder->pop();
+
+    TextStyle arabic = base;
+    arabic.setColor(SkColorSetRGB(180, 90, 20));
+    arabic.setDecoration(TextDecoration::kUnderline);
+    arabic.setDecorationColor(SkColorSetRGB(180, 90, 20));
+    builder->pushStyle(arabic);
+    builder->addText("Arabic: العربية الجميلة مع تحديد وتحرير وتمرير.\n");
+    builder->pop();
+
+    TextStyle mono = base;
+    mono.setColor(SkColorSetRGB(60, 60, 60));
+    mono.setFontFamilies({ SkString("Consolas"), SkString("Courier New"), SkString("Noto Sans"), SkString("Arial Unicode MS") });
+    builder->pushStyle(mono);
+    builder->addText("ASCII: The quick brown fox jumps over 0123456789 !@#$%^&*().\n");
+    builder->pop();
+
+    TextStyle emoji = base;
+    emoji.setFontSize(28.0f);
+    emoji.setColor(SkColorSetRGB(220, 70, 70));
+    builder->pushStyle(emoji);
+    builder->addText("Emoji: 😀😄✨🎨🔥🌈🌀🎬");
+    builder->pop();
+
+    return builder->Build();
+}
+
+
+void EnsureParagraph()
+{
+    if (!paragraph) {
+        fonts.Initialize();
+        paragraph = BuildParagraph(fonts);
+    }        
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+    EnsureParagraph();
+    paragraph->layout(400);
+    paragraph->paint(canvas, 16.0f, 16.0f);
+}
+```
+
+![](/img/image35.png)
