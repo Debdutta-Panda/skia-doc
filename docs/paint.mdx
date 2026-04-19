@@ -1,0 +1,174 @@
+---
+sidebar_position: 5
+---
+
+# Paint
+It is something where we can configure the final painting result. It is used in all drawing APIs, and it has a lot of properties that can be set to achieve different effects. It is also used in some non-drawing APIs, such as `SkCanvas::measureText` and `SkCanvas::getFontMetrics`, to measure text without actually drawing it.
+
+## Just a Paint
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image18.png)
+
+## setColor
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image19.png)
+
+## setStyle
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image20.png)
+
+## setStrokeWidth
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image21.png)
+
+## setAntiAlias
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image22.png)
+
+## setAlpha
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(100);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image23.png)
+
+## setPathEffect
+
+Example1(dashed effect): 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);
+SkScalar intervals[] = { 20, 14 };
+paint.setPathEffect(SkDashPathEffect::Make(intervals, 5));
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image24.png)
+
+Example2(trim path effect): 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);
+SkScalar intervals[] = { 20, 14 };
+paint.setPathEffect(SkTrimPathEffect::Make(0.25f, 0.75f));
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image25.png)
+
+Example3(compose path effect): 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);
+SkScalar intervals[] = { 20, 14 };
+auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
+auto dash = SkDashPathEffect::Make(intervals, 5);
+paint.setPathEffect(SkPathEffect::MakeCompose(
+    dash, // outer
+    trim  // inner
+));
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image26.png)
+
+## setStrokeCap
+
+Example: 
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setAntiAlias(true);
+paint.setAlpha(255);
+SkScalar intervals[] = { 20, 14 };
+auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
+auto dash = SkDashPathEffect::Make(intervals, 5);
+paint.setPathEffect(SkPathEffect::MakeCompose(
+    dash, // outer
+    trim  // inner
+));
+paint.setStrokeCap(SkPaint::kRound_Cap);
+canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
+```
+
+![](/img/image27.png)
