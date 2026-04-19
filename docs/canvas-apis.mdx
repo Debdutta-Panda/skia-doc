@@ -33,7 +33,7 @@ canvas->drawColor(SkColorSetARGB(255, 0, 120, 0), SkBlendMode::kColorDodge);
 ```
 ![](/img/image3.png)
 
-# Paint
+## Paint
 Paint is the container of many configurations for a painting like:
 * color
 * gradient
@@ -45,7 +45,7 @@ Example:
 SkPaint paint;
 paint.setColor(SK_ColorRED);
 ```
-# DrawLine
+## DrawLine
 `void drawLine(SkScalar x0, SkScalar y0, SkScalar x1, SkScalar y1, const SkPaint& paint)`
 
 `void drawLine(SkPoint p0, SkPoint p1, const SkPaint& paint)`
@@ -60,7 +60,7 @@ canvas->drawLine(20, 20, 40, 40, paint);
 
 ![](/img/image4.png)
 
-# DrawRect
+## DrawRect
 
 `void drawRect(const SkRect& rect, const SkPaint& paint)`
 
@@ -75,7 +75,7 @@ canvas->drawRect(rect, paint);
 
 ![](/img/image5.png)
 
-# DrawOval
+## DrawOval
 
 `void drawOval(const SkRect& oval, const SkPaint& paint)`
 
@@ -90,7 +90,7 @@ canvas->drawOval(rect, paint);
 
 ![](/img/image6.png)
 
-# DrawRRect
+## DrawRRect
 
 `void drawRRect(const SkRRect& rrect, const SkPaint& paint)`
 
@@ -106,7 +106,7 @@ canvas->drawRRect(rrect, paint);
 
 ![](/img/image7.png)
 
-# DrawDRRect
+## DrawDRRect
 `void drawDRRect(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint)`
 
 Example:
@@ -122,6 +122,65 @@ canvas->drawDRRect(rrect1, rrect2, paint);
 ```
 
 ![](/img/image8.png)
+
+## DrawCircle
+
+`void drawCircle(SkScalar cx, SkScalar cy, SkScalar radius, const SkPaint& paint)`
+
+`void drawCircle(SkPoint center, SkScalar radius, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+canvas->drawCircle(100,100,50, paint);
+```
+
+![](/img/image9.png)
+
+## DrawArc
+
+`void drawArc(const SkRect& oval, SkScalar startAngle, SkScalar sweepAngle, bool useCenter, const SkPaint& paint)`
+
+`void drawArc(const SkArc& arc, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setColor(SK_ColorRED);
+SkRect rect1 = { 100,100,200,300 };
+canvas->drawArc(rect1, 0, 270, false, paint);
+```
+
+![](/img/image10.png)
+
+## DrawPath
+
+`void drawPath(const SkPath& path, const SkPaint& paint)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+SkPaint paint;
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
+paint.setColor(SK_ColorRED);
+
+SkPathBuilder pb;
+pb.moveTo(10, 10)
+    .lineTo(200, 20)
+    .lineTo(40,60)
+    .close()
+    ;
+
+canvas->drawPath(pb.detach(), paint);
+```
+
+![](/img/image11.png)
 
 # Apis
 
