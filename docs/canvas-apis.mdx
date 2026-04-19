@@ -182,10 +182,347 @@ canvas->drawPath(pb.detach(), paint);
 
 ![](/img/image11.png)
 
-# Apis
+## DrawImage
 
-* drawColor
-* clear
-* drawPoint
-* drawPaint
-* drawLine
+`void drawImage(const SkImage* image, SkScalar left, SkScalar top)`
+
+`void drawImage(const sk_sp<SkImage>& image, SkScalar left, SkScalar top)`
+
+`void drawImage(const SkImage*, SkScalar x, SkScalar y, const SkSamplingOptions&, const SkPaint* = nullptr)`
+
+`void drawImage(const sk_sp<SkImage>& image, SkScalar x, SkScalar y, const SkSamplingOptions& sampling, const SkPaint* paint = nullptr)`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+const std::string narrowPath = path.string();
+sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+canvas->drawImage(image, 100, 100);
+```
+
+![](/img/image12.png)
+
+## DrawImageRect
+
+```cpp
+void drawImageRect(const SkImage*, const SkRect& src, const SkRect& dst,
+                   const SkSamplingOptions&, const SkPaint*, SrcRectConstraint);
+void drawImageRect(const SkImage*, const SkRect& dst, const SkSamplingOptions&,
+                   const SkPaint* = nullptr);
+void drawImageRect(const sk_sp<SkImage>& image, const SkRect& src, const SkRect& dst,
+                   const SkSamplingOptions& sampling, const SkPaint* paint,
+                   SrcRectConstraint constraint);
+void drawImageRect(const sk_sp<SkImage>& image, const SkRect& dst,
+                   const SkSamplingOptions& sampling, const SkPaint* paint = nullptr) {
+    this->drawImageRect(image.get(), dst, sampling, paint);
+}
+```
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+const std::string narrowPath = path.string();
+sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+canvas->drawImageRect(image, { 10,10,400,200 }, SkSamplingOptions{});
+```
+
+![](/img/image13.png)
+
+## DrawImageNine
+
+`void drawImageNine(const SkImage* image, const SkIRect& center, const SkRect& dst, SkFilterMode filter, const SkPaint* paint = nullptr);`
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+
+// --- load image
+std::filesystem::path path = "C:\\Users\\deb\\Downloads\\rrect.png";
+auto data = SkData::MakeFromFileName(path.string().c_str());
+if (!data) return;
+
+auto image = SkImages::DeferredFromEncodedData(data);
+if (!image) return;
+
+int w = image->width();
+int h = image->height();
+
+// --- IMPORTANT: define border thickness (must match your image corners)
+// your image shows thick rounded border → estimate ~40px
+int border = 20;
+
+SkIRect center = SkIRect::MakeLTRB(
+    border,
+    border,
+    w - border,
+    h - border
+);
+
+// --- destination size (resize freely)
+SkRect dst = SkRect::MakeXYWH(50, 50, 500, 250);
+
+// --- draw 9-patch
+canvas->drawImageNine(
+    image.get(),
+    center,
+    dst,
+    SkFilterMode::kLinear,
+    nullptr
+);
+```
+
+![](/img/image14.png)
+
+## DrawImageLattice
+
+```cpp
+void drawImageLattice(const SkImage* image, const Lattice& lattice, const SkRect& dst,
+                      SkFilterMode filter, const SkPaint* paint = nullptr);
+void drawImageLattice(const SkImage* image, const Lattice& lattice, const SkRect& dst);
+```
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+
+std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+auto data = SkData::MakeFromFileName(path.string().c_str());
+if (!data) return;
+
+auto image = SkImages::DeferredFromEncodedData(data);
+if (!image) return;
+
+int w = image->width();
+int h = image->height();
+
+// 🔥 multiple cuts → crazy distortion
+int xDivs[] = {
+    w / 6,
+    w / 3,
+    w / 2,
+    2 * w / 3,
+    5 * w / 6
+};
+
+int yDivs[] = {
+    h / 5,
+    2 * h / 5,
+    3 * h / 5,
+    4 * h / 5
+};
+
+SkCanvas::Lattice lattice{};
+lattice.fXDivs = xDivs;
+lattice.fYDivs = yDivs;
+lattice.fXCount = 5;
+lattice.fYCount = 4;
+
+lattice.fRectTypes = nullptr;
+lattice.fColors = nullptr;
+lattice.fBounds = nullptr;
+
+// BIG stretch area → exaggerated effect
+SkRect dst = SkRect::MakeXYWH(20, 20, 900, 600);
+
+canvas->drawImageLattice(
+    image.get(),
+    lattice,
+    dst,
+    SkFilterMode::kNearest, // 🔥 pixelated = more impact
+    nullptr
+);
+```
+
+![](/img/image15.png)
+
+## DrawSimpleText
+
+```cpp
+void drawSimpleText(const void* text, size_t byteLength, SkTextEncoding encoding,
+                    SkScalar x, SkScalar y, const SkFont& font, const SkPaint& paint);
+```
+
+Example:
+```cpp
+canvas->clear(SK_ColorWHITE);
+
+const char* text = "Hello Skia Doc";
+skiaexplorer::FontSystem fonts;
+fonts.Initialize();
+SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 28.0f);
+font.setSize(40);  // text size
+
+SkPaint paint;
+paint.setColor(SK_ColorBLACK);
+paint.setAntiAlias(true);
+
+canvas->drawSimpleText(
+    text,
+    strlen(text),                 // byte length
+    SkTextEncoding::kUTF8,        // encoding
+    50,                           // x
+    100,                          // baseline y
+    font,
+    paint
+);
+```
+
+![](/img/image16.png)
+
+## FontSystem
+
+```cpp
+// FontSystem.h
+#pragma once
+
+#include <string>
+
+#include "include/core/SkFontMgr.h"
+#include "include/core/SkRefCnt.h"
+#include "include/core/SkTypeface.h"
+#include "modules/skparagraph/include/FontCollection.h"
+#include "modules/skparagraph/include/TypefaceFontProvider.h"
+#include "modules/skunicode/include/SkUnicode.h"
+
+namespace skiaexplorer {
+    class FontSystem
+    {
+    public:
+        void Initialize();
+        void Reset();
+
+        sk_sp<SkFontMgr> GetFontManager() const;
+        sk_sp<skia::textlayout::FontCollection> GetCollection() const;
+        sk_sp<SkUnicode> GetUnicode() const;
+        sk_sp<SkTypeface> MatchTypeface(const std::string& family, const SkFontStyle& style) const;
+        SkString AddFromFile(const char path[], const char* name = nullptr);
+
+    private:
+        void EnsureInitialized() const;
+
+        sk_sp<SkFontMgr> fontManager_;
+        sk_sp<skia::textlayout::TypefaceFontProvider> fontProvider_;
+        sk_sp<skia::textlayout::FontCollection> fontCollection_;
+        sk_sp<SkUnicode> unicode_;
+    };
+}
+```
+
+```cpp
+// FontSystem.cpp
+
+#include "FontSystem.h"
+
+#include "include/ports/SkTypeface_win.h"
+#include "modules/skunicode/include/SkUnicode_icu.h"
+
+namespace skiaexplorer {
+    void FontSystem::Initialize()
+    {
+        EnsureInitialized();
+    }
+
+    void FontSystem::Reset()
+    {
+        fontProvider_.reset();
+        fontCollection_.reset();
+        unicode_.reset();
+        fontManager_.reset();
+    }
+
+    sk_sp<SkFontMgr> FontSystem::GetFontManager() const
+    {
+        EnsureInitialized();
+        return fontManager_;
+    }
+
+    sk_sp<skia::textlayout::FontCollection> FontSystem::GetCollection() const
+    {
+        EnsureInitialized();
+        return fontCollection_;
+    }
+
+    sk_sp<SkUnicode> FontSystem::GetUnicode() const
+    {
+        EnsureInitialized();
+        return unicode_;
+    }
+
+    sk_sp<SkTypeface> FontSystem::MatchTypeface(const std::string& family, const SkFontStyle& style) const
+    {
+        EnsureInitialized();
+        if (!fontManager_)
+        {
+            return nullptr;
+        }
+
+        sk_sp<SkTypeface> typeface = fontManager_->legacyMakeTypeface(
+            family.empty() ? nullptr : family.c_str(),
+            style);
+        if (!typeface && !family.empty())
+        {
+            typeface = fontManager_->legacyMakeTypeface(nullptr, style);
+        }
+        return typeface;
+    }
+
+    SkString FontSystem::AddFromFile(const char path[], const char* name)
+    {
+        EnsureInitialized();
+        if (!fontManager_ || !fontProvider_)
+        {
+            return {};
+        }
+
+        sk_sp<SkTypeface> typeface = fontManager_->makeFromFile(path, 0);
+        if (!typeface)
+        {
+            return {};
+        }
+
+        if (name)
+        {
+            SkString familyName(name);
+            fontProvider_->registerTypeface(typeface, familyName);
+            return familyName;
+        }
+
+        SkString familyName;
+        typeface->getFamilyName(&familyName);
+        fontProvider_->registerTypeface(typeface, familyName);
+        return familyName;
+    }
+
+    void FontSystem::EnsureInitialized() const
+    {
+        auto* self = const_cast<FontSystem*>(this);
+        if (!self->fontManager_)
+        {
+            self->fontManager_ = SkFontMgr_New_DirectWrite();
+            if (!self->fontManager_)
+            {
+                self->fontManager_ = SkFontMgr_New_GDI();
+            }
+        }
+        if (!self->fontProvider_)
+        {
+            self->fontProvider_ = sk_make_sp<skia::textlayout::TypefaceFontProvider>();
+        }
+        if (!self->fontCollection_)
+        {
+            self->fontCollection_ = sk_make_sp<skia::textlayout::FontCollection>();
+            self->fontCollection_->setAssetFontManager(self->fontProvider_);
+            self->fontCollection_->setDefaultFontManager(self->fontManager_);
+        }
+        if (!self->unicode_)
+        {
+            self->unicode_ = SkUnicodes::ICU::Make();
+        }
+    }
+}
+```
+
