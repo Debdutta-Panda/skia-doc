@@ -1,5 +1,13 @@
 ---
 sidebar_position: 7
+title: Unicode Text Layout in Skia
+description: Learn how to render Unicode, multilingual text, styled spans, and emoji in Skia using skparagraph and a practical FontSystem setup.
+slug: /unicode-text
+keywords:
+  - skia unicode text
+  - skia multilingual text
+  - skia skparagraph
+  - skia emoji text
 ---
 
 # Unicode Text Layout
@@ -117,7 +125,7 @@ void EnsureParagraph()
     if (!paragraph) {
         fonts.Initialize();
         paragraph = BuildParagraph(fonts);
-    }        
+    }
 }
 
 void DrawScene(SkCanvas* canvas, const AppState& state)
@@ -129,4 +137,4 @@ void DrawScene(SkCanvas* canvas, const AppState& state)
 }
 ```
 
-![](/img/image35.png)
+![Unicode text layout example with multiple scripts and styled spans](/img/image35.png)

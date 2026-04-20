@@ -1,299 +1,76 @@
 ---
 sidebar_position: 5
+title: SkPaint Basics
+description: Learn how SkPaint controls color, stroke, anti-aliasing, alpha, and visual styling in Skia.
+slug: /paint
+keywords:
+  - skpaint
+  - skia paint
+  - skia stroke width
+  - skia anti alias
 ---
 
-# Paint
-It is something where we can configure the final painting result. It is used in all drawing APIs, and it has a lot of properties that can be set to achieve different effects. It is also used in some non-drawing APIs, such as `SkCanvas::measureText` and `SkCanvas::getFontMetrics`, to measure text without actually drawing it.
+# SkPaint Basics
 
-## Just a Paint
+`SkPaint` controls how geometry is drawn. The canvas decides **where** drawing happens. `SkPaint` decides **how** it looks.
 
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
+Typical paint properties include:
 
-![](/img/image18.png)
+- fill or stroke style
+- color and alpha
+- stroke width
+- anti-aliasing
+- effects such as path effects, shaders, and color filters
 
-## setColor
-
-Example: 
+## Minimal example
 
 ```cpp
 canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
 
-![](/img/image19.png)
-
-## setStyle
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image20.png)
-
-## setStrokeWidth
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image21.png)
-
-## setAntiAlias
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image22.png)
-
-## setAlpha
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(100);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image23.png)
-
-## setPathEffect
-
-Example1(dashed effect): 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);
-SkScalar intervals[] = { 20, 14 };
-paint.setPathEffect(SkDashPathEffect::Make(intervals, 5));
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image24.png)
-
-Example2(trim path effect): 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);
-SkScalar intervals[] = { 20, 14 };
-paint.setPathEffect(SkTrimPathEffect::Make(0.25f, 0.75f));
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image25.png)
-
-Example3(compose path effect): 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);
-SkScalar intervals[] = { 20, 14 };
-auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
-auto dash = SkDashPathEffect::Make(intervals, 5);
-paint.setPathEffect(SkPathEffect::MakeCompose(
-    dash, // outer
-    trim  // inner
-));
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image26.png)
-
-## setStrokeCap
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);
-SkScalar intervals[] = { 20, 14 };
-auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
-auto dash = SkDashPathEffect::Make(intervals, 5);
-paint.setPathEffect(SkPathEffect::MakeCompose(
-    dash, // outer
-    trim  // inner
-));
-paint.setStrokeCap(SkPaint::kRound_Cap);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image27.png)
-
-## setShader
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-std::array<SkColor4f, 3> colors = {
-    SkColors::kRed,
-    SkColors::kYellow,
-    SkColors::kBlue
-};
-std::array<float, 3> pos = { 0.0f, 0.5f, 1.0f };
-
-SkGradient grad = {
-    { colors, pos, SkTileMode::kClamp }, // colors, stops, tile mode
-    {}                                   // default interpolation
-};
-
-// attach gradient shader to the paint
-SkPoint pts[2] = { {0, 0}, {300, 0} };
-paint.setShader(SkShaders::LinearGradient(pts, grad));
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);
-SkScalar intervals[] = { 20, 14 };
-auto trim = SkTrimPathEffect::Make(0.25f, 0.75f);
-auto dash = SkDashPathEffect::Make(intervals, 5);
-paint.setPathEffect(SkPathEffect::MakeSum(
-    dash, // outer
-    trim  // inner
-));
-paint.setStrokeCap(SkPaint::kRound_Cap);
-canvas->drawRoundRect({ 40,40,200,300 }, 10, 10, paint);
-```
-
-![](/img/image28.png)
-
-
-## setStrokeJoin
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setStyle(SkPaint::kStroke_Style);
-paint.setStrokeWidth(5);
-paint.setAntiAlias(true);
-paint.setAlpha(255);        
-paint.setStrokeCap(SkPaint::kRound_Cap);
-paint.setStrokeJoin(SkPaint::kRound_Join);
-canvas->drawRoundRect({ 40,40,200,300 }, 0, 0, paint);
-```
-
-![](/img/image29.png)
-
-## setColorFilter
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
-std::filesystem::path path = "C:\\Users\\deb\\Downloads\\sunflower.jpg";
-const std::string narrowPath = path.string();
-sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
-sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
-SkColorMatrix matrix;
-matrix.setSaturation(0.0f);
-SkPaint paint;
-paint.setColorFilter(SkColorFilters::Matrix(matrix));
-canvas->drawImage(image, 100, 100, SkSamplingOptions(), &paint);
-```
-
-![](/img/image30.png)
-
-## setBlendMode
-
-Example: 
-
-```cpp
-SkPaint paint;
-
-paint.setColor(SK_ColorBLUE);
-canvas->drawRect(SkRect::MakeXYWH(40, 40, 120, 120), paint);
-
-paint.setColor(SK_ColorRED);
-paint.setBlendMode(SkBlendMode::kScreen);
-canvas->drawCircle(120, 120, 60, paint);
-```
-
-![](/img/image31.png)
-
-## setMaskFilter
-
-Example: 
-
-```cpp
-canvas->clear(SK_ColorWHITE);
 SkPaint paint;
 paint.setAntiAlias(true);
-paint.setColor(SK_ColorBLUE);
-paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, 8.0f));
-canvas->drawCircle(120, 120, 50, paint);
+paint.setColor(SK_ColorRED);
+
+canvas->drawRoundRect({40, 40, 200, 300}, 10, 10, paint);
 ```
 
-![](/img/image32.png)
+## Most-used paint settings
 
-## setImageFilter
-
-Example: 
+### Fill vs stroke
 
 ```cpp
-canvas->clear(SK_ColorWHITE);
-SkPaint paint;
-paint.setColor(SK_ColorRED);
-paint.setImageFilter(SkImageFilters::Blur(8.0f, 8.0f, nullptr));
-
-canvas->drawRect(SkRect::MakeXYWH(40, 40, 160, 100), paint);
+paint.setStyle(SkPaint::kStroke_Style);
+paint.setStrokeWidth(5);
 ```
 
-![](/img/image33.png)
+### Anti-aliasing
+
+```cpp
+paint.setAntiAlias(true);
+```
+
+This is usually a good default for UI drawing and vector shapes.
+
+### Alpha
+
+```cpp
+paint.setAlpha(128);
+```
+
+Alpha affects transparency. Lower alpha makes the result more transparent.
+
+## Why paint matters
+
+The same geometry can look completely different depending on the paint:
+
+- a rectangle can be filled
+- the same rectangle can be stroked
+- it can become dashed with a path effect
+- it can be tinted with a color filter
+
+That makes `SkPaint` one of the most important objects to understand early.
+
+## Related topics
+
+- Learn where paint is used in [Canvas APIs](/docs/canvas-apis)
+- See a filter-heavy example in [Image Adjustments](/docs/examples/image-adjustments)

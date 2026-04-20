@@ -1,0 +1,60 @@
+.heroBanner {
+  position: relative;
+  overflow: hidden;
+  padding: 6rem 0 5rem;
+  background:
+    radial-gradient(circle at top left, rgba(29, 163, 117, 0.22), transparent 32%),
+    radial-gradient(circle at right center, rgba(21, 96, 189, 0.18), transparent 28%),
+    linear-gradient(180deg, #f7fbf8 0%, #edf5f2 100%);
+}
+
+.heroContent {
+  max-width: 760px;
+}
+
+.kicker {
+  margin-bottom: 0.75rem;
+  color: #0f7b57;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  margin-bottom: 1rem;
+  color: #11231f;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1.02;
+}
+
+.heroSubtitle {
+  max-width: 640px;
+  margin-bottom: 1.75rem;
+  color: #35514b;
+  font-size: 1.15rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+[data-theme='dark'] .heroBanner {
+  background:
+    radial-gradient(circle at top left, rgba(29, 163, 117, 0.18), transparent 32%),
+    radial-gradient(circle at right center, rgba(79, 129, 255, 0.16), transparent 28%),
+    linear-gradient(180deg, #111715 0%, #151d1a 100%);
+}
+
+[data-theme='dark'] .kicker {
+  color: #58d0a6;
+}
+
+[data-theme='dark'] .heroTitle {
+  color: #eef8f4;
+}
+
+[data-theme='dark'] .heroSubtitle {
+  color: #b7cfc7;
+}

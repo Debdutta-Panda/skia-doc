@@ -1,8 +1,18 @@
 ---
 sidebar_position: 2
+title: DrawScene Pattern
+description: A simple DrawScene function pattern for organizing Skia rendering code in a reusable way.
+slug: /draw-scene
+keywords:
+  - skia drawscene
+  - skia render loop
+  - skia c++ scene function
 ---
 
-# DrawScene
+# DrawScene Pattern
+
+In many small Skia applications, `DrawScene` becomes the central function where the frame is rendered. It is a useful convention because it gives you one place to clear the canvas, prepare paints, and draw the scene.
+
 ```cpp
 void DrawScene(SkCanvas* canvas, const AppState& state)
 {
@@ -17,4 +27,5 @@ void DrawScene(SkCanvas* canvas, const AppState& state)
     canvas->drawRect(SkRect::MakeXYWH(40.0f, 40.0f, rectWidth, rectHeight), paint);
 }
 ```
-This is the function where most of the time we will live.
+
+For small demos and documentation snippets, this pattern keeps the code easy to copy into a sample app.

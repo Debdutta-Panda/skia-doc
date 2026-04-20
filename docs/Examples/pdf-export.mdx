@@ -1,0 +1,205 @@
+---
+sidebar_position: 4
+title: Skia PDF Export Example
+description: Learn how to generate PDF files with Skia using SkPDF::MakeDocument, including a minimal export example and a metadata-based export setup.
+slug: /examples/pdf-export
+keywords:
+  - skia pdf
+  - skia pdf export
+  - skpdf make document
+  - skia c++ pdf example
+---
+
+# Skia PDF Export Example
+
+Skia can generate PDF documents through `SkDocument` and the PDF factory in `SkPDF`.
+
+From the Skia headers in your local source:
+
+- the public entry point is `SkPDF::MakeDocument(...)`
+- pages are created with `beginPage(...)`
+- output is finalized with `endPage()` and `close()`
+
+This means a lot of your regular canvas drawing code can be reused for PDF generation with very little change.
+
+## Minimal single-page PDF
+
+This is the simplest useful pattern.
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkDocument.h"
+#include "include/core/SkFont.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkRect.h"
+#include "include/core/SkStream.h"
+#include "include/docs/SkPDFDocument.h"
+#include "FontSystem.h"
+
+bool WriteSimplePdf(const char* path) {
+    SkFILEWStream out(path);
+    if (!out.isValid()) {
+        return false;
+    }
+    SkPDF::Metadata metadata;
+    metadata.allowNoJpegs = true;
+
+    sk_sp<SkDocument> doc = SkPDF::MakeDocument(&out, metadata);
+    if (!doc) {
+        return false;
+    }
+
+    // PDF page sizes are in points. 72 points = 1 inch.
+    SkCanvas* canvas = doc->beginPage(612.0f, 792.0f); // 8.5" x 11"
+
+    canvas->clear(SK_ColorWHITE);
+
+    SkPaint textPaint;
+    textPaint.setAntiAlias(true);
+    textPaint.setColor(SK_ColorBLACK);
+
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+    SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 28.0f);
+    font.setSize(24);  // text size
+
+    canvas->drawString("Hello PDF", 72.0f, 100.0f, font, textPaint);
+
+    SkPaint boxPaint;
+    boxPaint.setAntiAlias(true);
+    boxPaint.setColor(SkColorSetRGB(52, 120, 246));
+    canvas->drawRect(SkRect::MakeXYWH(72.0f, 140.0f, 220.0f, 110.0f), boxPaint);
+
+    doc->endPage();
+    doc->close();
+    return true;
+}
+```
+
+[Open Simple Pdf](/assets/simplePdf.pdf)
+
+## Multi-page PDF
+
+Use the same document object and call `beginPage()` and `endPage()` for each page.
+
+```cpp
+bool WriteMultiPagePdf(const char* path) {
+    SkFILEWStream out(path);
+    if (!out.isValid()) {
+        return false;
+    }
+
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+
+    sk_sp<SkDocument> doc = SkPDF::MakeDocument(&out);
+    if (!doc) {
+        return false;
+    }
+
+    {
+        SkCanvas* canvas = doc->beginPage(612.0f, 792.0f);
+
+        SkPaint paint;
+        paint.setAntiAlias(true);
+        paint.setColor(SK_ColorBLUE);
+        canvas->drawRect(SkRect::MakeXYWH(72, 72, 200, 120), paint);
+
+        doc->endPage();
+    }
+
+    {
+        SkCanvas* canvas = doc->beginPage(612.0f, 792.0f);
+
+        SkPaint paint;
+        paint.setAntiAlias(true);
+        paint.setColor(SK_ColorRED);
+        canvas->drawCircle(200, 200, 80, paint);
+
+        doc->endPage();
+    }
+
+    doc->close();
+    return true;
+}
+```
+
+[Open Multi-page Pdf](/assets/multipagePdf.pdf)
+
+## PDF with metadata and better export settings
+
+Skia’s `SkPDF::Metadata` lets you control title, author, DPI, encoding quality, and compression tradeoffs.
+
+```cpp
+#include "include/core/SkString.h"
+
+bool WriteHighQualityPdf(const char* path) {
+    SkFILEWStream out(path);
+    if (!out.isValid()) {
+        return false;
+    }
+
+    SkPDF::Metadata metadata;
+    metadata.fTitle = SkString("Skia PDF Export Example");
+    metadata.fAuthor = SkString("Skia Doc");
+    metadata.fSubject = SkString("PDF Rendering");
+    metadata.fKeywords = SkString("skia,pdf,export");
+    metadata.fRasterDPI = 300.0f;
+    metadata.fEncodingQuality = 95;
+    metadata.fCompressionLevel = SkPDF::Metadata::CompressionLevel::HighButSlow;
+    metadata.allowNoJpegs = true;
+
+    sk_sp<SkDocument> doc = SkPDF::MakeDocument(&out, metadata);
+    if (!doc) {
+        return false;
+    }
+
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+
+    SkCanvas* canvas = doc->beginPage(612.0f, 792.0f);
+    canvas->clear(SK_ColorWHITE);
+
+    SkPaint titlePaint;
+    titlePaint.setAntiAlias(true);
+    titlePaint.setColor(SK_ColorBLACK);
+
+    SkFont titleFont(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 24.0f);
+    titleFont.setSize(24.0f);
+
+    canvas->drawString("High Quality PDF Export", 72, 100, titleFont, titlePaint);
+
+    SkPaint accent;
+    accent.setAntiAlias(true);
+    accent.setColor(SkColorSetARGB(255, 230, 240, 255));
+    canvas->drawRect(SkRect::MakeXYWH(72, 130, 300, 120), accent);
+
+    doc->endPage();
+    doc->close();
+    return true;
+}
+```
+
+[Open book style Pdf](/assets/skia-book-demo.pdf)
+
+## Notes
+
+- PDF page sizes are in points, not pixels.
+- A PDF document is not complete until you call `close()`.
+- Most normal `SkCanvas` drawing code works on a PDF page canvas too.
+- Some effects can be rasterized internally when PDF has no direct native equivalent.
+
+## When to use PDF output
+
+PDF export is useful when you want:
+
+- printable reports
+- vector-friendly invoices or documents
+- export from a drawing tool
+- a document output target that can reuse much of your canvas drawing code
+
+## Related pages
+
+- [DrawScene Pattern](/docs/draw-scene)
+- [Save Image Output from Skia](/docs/image-output)
+- [Skia Transformations Example](/docs/examples/transformations)

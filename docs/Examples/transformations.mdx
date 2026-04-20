@@ -1,14 +1,41 @@
 ---
 sidebar_position: 3
+title: Skia Transformations Example
+description: Learn how translate, rotate, scale, and skew work in Skia with compact C++ examples and a visual transformation demo.
+slug: /examples/transformations
+keywords:
+  - skia transformations
+  - skia rotate example
+  - skia scale example
+  - skia translate example
 ---
 
-# Transformations
+# Skia Transformations Example
 
-## Simple
+Transforms are easier to understand when the geometry is defined around the local origin and then moved into place with the canvas.
+
+This page shows both:
+
+- a minimal transformation example
+- a richer visual demo that compares multiple transform types
+
+## Why this pattern works well
+
+The easiest way to reason about transforms in Skia is:
+
+1. define the object in local space near `(0, 0)`
+2. call `save()`
+3. apply transforms on the canvas
+4. draw
+5. call `restore()`
+
+That keeps transform logic isolated and predictable.
+
+## Minimal example
 
 ```cpp
 canvas->clear(SK_ColorWHITE);
-//////////////////////////////////////////
+
 SkPaint paint;
 paint.setAntiAlias(true);
 paint.setColor(SK_ColorBLUE);
@@ -23,9 +50,12 @@ canvas->drawRect(rect, paint);
 canvas->restore();
 ```
 
-![Bell Icon](/img/image40.png)
+![Simple transformation example](/img/image40.png)
 
-## Interesting
+## Rich visual demo
+
+This example draws one reusable object and then renders it multiple times with different transforms.
+
 ```cpp
 static void DrawAxes(SkCanvas* canvas, float size = 120.0f) {
     SkPaint axis;
@@ -34,10 +64,10 @@ static void DrawAxes(SkCanvas* canvas, float size = 120.0f) {
     axis.setStyle(SkPaint::kStroke_Style);
 
     axis.setColor(SkColorSetRGB(220, 70, 70));
-    canvas->drawLine(0, 0, size, 0, axis);  // +X
+    canvas->drawLine(0, 0, size, 0, axis);
 
     axis.setColor(SkColorSetRGB(70, 140, 240));
-    canvas->drawLine(0, 0, 0, size, axis);  // +Y
+    canvas->drawLine(0, 0, 0, size, axis);
 
     SkPaint center;
     center.setAntiAlias(true);
@@ -55,7 +85,6 @@ static void DrawReferenceBox(SkCanvas* canvas, const SkRect& r) {
 }
 
 static void DrawObject(SkCanvas* canvas) {
-    // Local object centered near origin so transforms are easy to see.
     SkPaint fill;
     fill.setAntiAlias(true);
     fill.setColor(SkColorSetRGB(255, 180, 40));
@@ -66,13 +95,11 @@ static void DrawObject(SkCanvas* canvas) {
     stroke.setStrokeWidth(3);
     stroke.setColor(SkColorSetRGB(35, 35, 35));
 
-    // Main body
     SkRect body = SkRect::MakeXYWH(-45, -30, 90, 60);
     canvas->drawRoundRect(body, 12, 12, fill);
     canvas->drawRoundRect(body, 12, 12, stroke);
 
-    // A triangle "arrow" nose to show orientation clearly
-    SkPathBuilder nose;
+    SkPath nose;
     nose.moveTo(45, -18);
     nose.lineTo(78, 0);
     nose.lineTo(45, 18);
@@ -80,25 +107,25 @@ static void DrawObject(SkCanvas* canvas) {
 
     SkPaint noseFill = fill;
     noseFill.setColor(SkColorSetRGB(255, 110, 70));
-    canvas->drawPath(nose.detach(), noseFill);
-    canvas->drawPath(nose.detach(), stroke);
+    canvas->drawPath(nose, noseFill);
+    canvas->drawPath(nose, stroke);
 
-    // A small circle marker in top-left area so scale/skew are easier to notice
     SkPaint marker;
     marker.setAntiAlias(true);
     marker.setColor(SkColorSetRGB(30, 30, 30));
     canvas->drawCircle(-22, -10, 6, marker);
 }
 
-static void DrawLabeledDemo(SkCanvas* canvas,
+static void DrawLabeledDemo(
+    SkCanvas* canvas,
     const char* label,
     float x,
     float y,
     std::function<void(SkCanvas*)> transformFn) {
     skiaexplorer::FontSystem fonts;
     fonts.Initialize();
-    SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 28.0f);
-    font.setSize(20);  // text size
+
+    SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 20.0f);
 
     SkPaint textPaint;
     textPaint.setAntiAlias(true);
@@ -118,58 +145,47 @@ static void DrawLabeledDemo(SkCanvas* canvas,
     canvas->restore();
 }
 
-void DrawTransformationDemo(SkCanvas* canvas, int width, int height) {
+void DrawScene(SkCanvas* canvas, const AppState& state) {
     canvas->clear(SkColorSetRGB(248, 246, 240));
 
-    // Title
-    SkFont titleFont;
-    titleFont.setSize(28);
+    DrawLabeledDemo(canvas, "Original", 140, 180, [](SkCanvas* c) {});
 
-    SkPaint titlePaint;
-    titlePaint.setAntiAlias(true);
-    titlePaint.setColor(SkColorSetRGB(20, 20, 20));
-
-    canvas->drawString("Skia Transformations", 30, 40, titleFont, titlePaint);
-
-    // 1. Original
-    DrawLabeledDemo(canvas, "Original", 140, 180, [](SkCanvas* c) {
-        // no transform
-        });
-
-    // 2. Translation
     DrawLabeledDemo(canvas, "Translate(35, 20)", 400, 180, [](SkCanvas* c) {
         c->translate(35, 20);
-        });
+    });
 
-    // 3. Rotation around local origin
     DrawLabeledDemo(canvas, "Rotate(30)", 660, 180, [](SkCanvas* c) {
         c->rotate(30.0f);
-        });
+    });
 
-    // 4. Scale around local origin
     DrawLabeledDemo(canvas, "Scale(1.35, 0.70)", 140, 420, [](SkCanvas* c) {
         c->scale(1.35f, 0.70f);
-        });
+    });
 
-    // 5. Skew
     DrawLabeledDemo(canvas, "Skew(0.35, 0.0)", 400, 420, [](SkCanvas* c) {
         c->skew(0.35f, 0.0f);
-        });
+    });
 
-    // 6. Combined transform
     DrawLabeledDemo(canvas, "Translate + Rotate + Scale", 660, 420, [](SkCanvas* c) {
         c->translate(20, 10);
         c->rotate(-25.0f);
         c->scale(1.15f, 1.15f);
-        });
-}
-
-void DrawScene(SkCanvas* canvas, const AppState& state)
-{
-    canvas->clear(SK_ColorWHITE);
-    //////////////////////////////////////////
-    DrawTransformationDemo(canvas, 500, 500);
+    });
 }
 ```
 
-![Bell Icon](/img/image41.png)
+## What to notice
+
+- `translate()` changes the local origin
+- `rotate()` rotates around the current origin
+- `scale()` stretches in local space
+- `skew()` shears the geometry
+- combining transforms makes order important
+
+![Transformation comparison grid showing translate, rotate, scale, skew, and combined transforms](/img/image41.png)
+
+## Related pages
+
+- [SkCanvas Basics](/docs/canvas)
+- [SkCanvas Drawing APIs](/docs/canvas-apis)
+- [SkPaint Basics](/docs/paint)

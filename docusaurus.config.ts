@@ -2,34 +2,26 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-
 const config: Config = {
-  title: 'Skia Doc',
-  tagline: 'Skia is cool',
+  title: 'Skia C++ Docs',
+  titleDelimiter: '|',
+  tagline:
+    'Practical Skia documentation with working C++ examples, setup guides, and visual demos.',
   favicon: 'img/favicon.ico',
 
-  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: true,
   },
 
-  // Set the production url of your site here
   url: 'https://debdutta-panda.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/skia-doc',
+  baseUrl: '/skia-doc/',
+  trailingSlash: false,
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'debdutta-panda', // Usually your GitHub org/user name.
-  projectName: 'skia-doc', // Usually your repo name.
+  organizationName: 'debdutta-panda',
+  projectName: 'skia-doc',
 
   onBrokenLinks: 'throw',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -41,12 +33,8 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/Debdutta-Panda/skia-doc',
+          editUrl: 'https://github.com/Debdutta-Panda/skia-doc/tree/main',
         },
-        
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -55,15 +43,21 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/logo.png',
+    metadata: [
+      {
+        name: 'keywords',
+        content:
+          'Skia C++, Skia tutorial, SkCanvas, SkPaint, Skia PDF, Skia SVG, Skia examples, graphics programming',
+      },
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Skia Doc',
+      title: 'Skia C++ Docs',
       logo: {
-        alt: 'Skia Doc Logo',
+        alt: 'Skia C++ Docs Logo',
         src: 'img/logo.png',
       },
       items: [
@@ -71,7 +65,12 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Docs',
+        },
+        {
+          to: '/docs/examples/transformations',
+          label: 'Examples',
+          position: 'left',
         },
         {
           href: 'https://github.com/Debdutta-Panda/skia-doc',
@@ -87,25 +86,29 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
+              label: 'Getting Started',
               to: '/docs/intro',
+            },
+            {
+              label: 'Canvas APIs',
+              to: '/docs/canvas-apis',
+            },
+            {
+              label: 'Examples',
+              to: '/docs/examples/transformations',
             },
           ],
         },
         {
-          title: 'Community',
+          title: 'Skia',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Official Skia Docs',
+              href: 'https://skia.org/docs/',
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
+              label: 'Skia GitHub',
+              href: 'https://github.com/google/skia',
             },
           ],
         },
@@ -113,13 +116,13 @@ const config: Config = {
           title: 'More',
           items: [
             {
-              label: 'GitHub',
+              label: 'Repository',
               href: 'https://github.com/Debdutta-Panda/skia-doc',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Debdutta Panda. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

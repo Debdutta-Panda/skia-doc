@@ -1,6 +1,79 @@
 ---
 sidebar_position: 3
+title: SkCanvas Basics
+description: Understand what SkCanvas is, why it matters, and how transforms, clipping, and paint operations are applied in Skia.
+slug: /canvas
+keywords:
+  - skcanvas
+  - skia canvas
+  - skia c++ canvas
+  - skia drawing surface
 ---
 
-# Canvas
-Canvas is the most important thing in almost every graphics library/engine in some way or other, so here also. Think canvas as where you will paint.
+# SkCanvas Basics
+
+`SkCanvas` is the main drawing interface in Skia. Almost everything you render eventually goes through a canvas.
+
+You can think of it as the object that receives drawing commands such as:
+
+- clearing a surface
+- drawing shapes
+- drawing text
+- drawing images
+- applying transforms and clipping
+
+## What a canvas does
+
+A canvas does not usually own pixels by itself. Instead, it draws into a target provided by a surface, bitmap, document, or framework integration.
+
+At a high level:
+
+1. You get a canvas from something like a surface.
+2. You configure a [`SkPaint`](/docs/paint) if needed.
+3. You call drawing APIs on the canvas.
+
+## Typical drawing flow
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorBLUE);
+
+canvas->drawRect(SkRect::MakeXYWH(40, 40, 160, 100), paint);
+```
+
+## Important ideas
+
+### The canvas keeps state
+
+Canvas state includes things like:
+
+- the current transform
+- the current clip
+- temporary save layers
+
+That is why `save()` and `restore()` are so important.
+
+```cpp
+canvas->save();
+canvas->translate(200, 120);
+canvas->rotate(20);
+canvas->drawRect(SkRect::MakeXYWH(-40, -30, 80, 60), paint);
+canvas->restore();
+```
+
+### The order of operations matters
+
+Transforms are cumulative. If you `translate`, then `rotate`, the result is different from rotating first and translating later.
+
+### Paint does not live on the canvas
+
+The canvas performs the drawing, while [`SkPaint`](/docs/paint) describes how that drawing should look.
+
+## Related topics
+
+- Learn the common calls in [Canvas APIs](/docs/canvas-apis)
+- Learn drawing configuration in [Paint](/docs/paint)
+- See a visual demo in [Transformations](/docs/examples/transformations)

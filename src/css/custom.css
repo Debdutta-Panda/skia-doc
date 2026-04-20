@@ -1,30 +1,64 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Global styles for the documentation site.
  */
 
-/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-primary: #13795b;
+  --ifm-color-primary-dark: #116d52;
+  --ifm-color-primary-darker: #10674d;
+  --ifm-color-primary-darkest: #0d553f;
+  --ifm-color-primary-light: #158564;
+  --ifm-color-primary-lighter: #168b69;
+  --ifm-color-primary-lightest: #1aa47b;
+  --ifm-background-color: #fcfdfc;
+  --ifm-font-color-base: #1f2b27;
+  --ifm-heading-color: #13211d;
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-navbar-background-color: rgba(252, 253, 252, 0.9);
+  --ifm-toc-border-color: rgba(19, 33, 29, 0.08);
+  --docusaurus-highlighted-code-line-bg: rgba(19, 121, 91, 0.08);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #4fd2a6;
+  --ifm-color-primary-dark: #38cb9b;
+  --ifm-color-primary-darker: #2ac896;
+  --ifm-color-primary-darkest: #22a97d;
+  --ifm-color-primary-light: #66d9b1;
+  --ifm-color-primary-lighter: #72dcb7;
+  --ifm-color-primary-lightest: #93e4c7;
+  --ifm-background-color: #0f1412;
+  --ifm-navbar-background-color: rgba(15, 20, 18, 0.82);
+  --ifm-font-color-base: #e5efeb;
+  --ifm-heading-color: #f3faf7;
+  --ifm-toc-border-color: rgba(255, 255, 255, 0.08);
+  --docusaurus-highlighted-code-line-bg: rgba(79, 210, 166, 0.12);
+}
+
+.navbar {
+  backdrop-filter: blur(14px);
+}
+
+.markdown > h1:first-child {
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  line-height: 1.08;
+}
+
+.markdown img {
+  display: block;
+  max-width: 100%;
+  margin: 1.25rem auto;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(18, 30, 26, 0.08);
+}
+
+[data-theme='dark'] .markdown img {
+  background: #111715;
+  box-shadow: none;
+}
+
+.theme-code-block {
+  border: 1px solid var(--ifm-color-emphasis-200);
 }

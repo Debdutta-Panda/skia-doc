@@ -1,4 +1,17 @@
 {
   "label": "Examples",
-  "position": 9
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "title": "Skia C++ Examples",
+    "description": "Browse practical Skia examples for transformations, image adjustments, PDF export, book-style PDF generation, and vector icon drawing.",
+    "slug": "/examples",
+    "keywords": [
+      "skia examples",
+      "skia c++ examples",
+      "skia pdf example",
+      "skia transformations example",
+      "skia image adjustments"
+    ]
+  }
 }

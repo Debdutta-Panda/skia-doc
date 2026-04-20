@@ -1,0 +1,461 @@
+---
+sidebar_position: 5
+title: Skia Book-Style Multi-Page PDF Example
+description: Create a multi-page PDF in Skia that feels like a small book, with a cover, chapter pages, text blocks, images, geometry, and page numbers.
+slug: /examples/book-style-pdf
+keywords:
+  - skia multipage pdf
+  - skia book pdf
+  - skia pdf page numbers
+  - skia pdf images text shapes
+---
+
+# Skia Book-Style Multi-Page PDF Example
+
+This example creates a multi-page PDF that feels closer to a small illustrated booklet than a raw export dump.
+
+It includes:
+
+- a cover page
+- chapter-style interior pages
+- decorative geometry
+- an embedded image
+- running page numbers
+- reusable header and footer helpers
+
+## Design idea
+
+The easiest way to make PDF output feel book-like is to treat every page as a layout system:
+
+1. define a page size and margins
+2. draw a repeated header and footer
+3. reserve a content rectangle
+4. mix text, image blocks, and geometry inside that rectangle
+
+## Complete example
+
+```cpp
+namespace {
+
+    constexpr float kPageWidth = 612.0f;
+    constexpr float kPageHeight = 792.0f;
+    constexpr float kMargin = 54.0f;
+    constexpr float kContentWidth = kPageWidth - 2 * kMargin;
+
+    SkFont MakeUiFont(skiaexplorer::FontSystem& fonts, float size) {
+        SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), size);
+        font.setSize(size);
+        return font;
+    }
+
+    skia::textlayout::TextStyle MakeBaseTextStyle(float size, SkColor color) {
+        using namespace skia::textlayout;
+
+        TextStyle style;
+        style.setFontSize(size);
+        style.setColor(color);
+        style.setFontFamilies({
+            SkString("Segoe UI"),
+            SkString("Noto Sans"),
+            SkString("Nirmala UI"),
+            SkString("Yu Gothic UI"),
+            SkString("Arial Unicode MS"),
+            });
+        style.setLocale(SkString("en"));
+        return style;
+    }
+
+    std::unique_ptr<skia::textlayout::Paragraph> BuildBodyParagraph(
+        skiaexplorer::FontSystem& fonts,
+        const std::string& chapterLead,
+        const std::string& chapterBody) {
+        using namespace skia::textlayout;
+
+        ParagraphStyle paragraphStyle;
+        paragraphStyle.setTextAlign(TextAlign::kLeft);
+
+        TextStyle base = MakeBaseTextStyle(14.0f, SkColorSetRGB(56, 50, 44));
+        paragraphStyle.setTextStyle(base);
+
+        auto builder = ParagraphBuilder::make(paragraphStyle, fonts.GetCollection(), fonts.GetUnicode());
+
+        TextStyle lead = base;
+        lead.setFontStyle(SkFontStyle::Bold());
+        lead.setColor(SkColorSetRGB(28, 32, 44));
+        builder->pushStyle(lead);
+        builder->addText(chapterLead.c_str());
+        builder->pop();
+
+        builder->pushStyle(base);
+        builder->addText(chapterBody.c_str());
+        builder->pop();
+
+        TextStyle emphasis = base;
+        emphasis.setFontStyle(SkFontStyle::Italic());
+        emphasis.setColor(SkColorSetRGB(184, 95, 51));
+        builder->pushStyle(emphasis);
+        builder->addText(" This paragraph uses SkParagraph for wrapping and line breaking.");
+        builder->pop();
+
+        builder->pushStyle(base);
+        builder->addText("\n\n");
+        builder->pop();
+
+        TextStyle bangla = base;
+        bangla.setFontStyle(SkFontStyle::Bold());
+        bangla.setColor(SkColorSetRGB(0, 110, 70));
+        bangla.setLocale(SkString("bn"));
+        builder->pushStyle(bangla);
+        builder->addText("বাংলা ");
+        builder->pop();
+
+        TextStyle hindi = base;
+        hindi.setColor(SkColorSetRGB(126, 74, 180));
+        hindi.setLocale(SkString("hi"));
+        builder->pushStyle(hindi);
+        builder->addText("हिंदी ");
+        builder->pop();
+
+        TextStyle japanese = base;
+        japanese.setColor(SkColorSetRGB(90, 70, 160));
+        japanese.setLocale(SkString("ja"));
+        builder->pushStyle(japanese);
+        builder->addText("日本語 ");
+        builder->pop();
+
+        TextStyle arabic = base;
+        arabic.setColor(SkColorSetRGB(180, 90, 20));
+        arabic.setLocale(SkString("ar"));
+        arabic.setDecoration(TextDecoration::kUnderline);
+        arabic.setDecorationStyle(TextDecorationStyle::kSolid);
+        arabic.setDecorationColor(SkColorSetRGB(180, 90, 20));
+        builder->pushStyle(arabic);
+        builder->addText("العربية ");
+        builder->pop();
+
+        TextStyle emoji = base;
+        emoji.setFontSize(15.0f);
+        emoji.setColor(SkColorSetRGB(220, 80, 80));
+        builder->pushStyle(emoji);
+        builder->addText("✨📘🎨");
+        builder->pop();
+
+        return builder->Build();
+    }
+
+    std::unique_ptr<skia::textlayout::Paragraph> BuildNoteParagraph(
+        skiaexplorer::FontSystem& fonts,
+        const std::string& noteText) {
+        using namespace skia::textlayout;
+
+        ParagraphStyle paragraphStyle;
+        paragraphStyle.setTextAlign(TextAlign::kLeft);
+
+        TextStyle base = MakeBaseTextStyle(14.0f, SkColorSetRGB(84, 66, 46));
+        paragraphStyle.setTextStyle(base);
+
+        auto builder = ParagraphBuilder::make(paragraphStyle, fonts.GetCollection(), fonts.GetUnicode());
+
+        TextStyle label = base;
+        label.setFontStyle(SkFontStyle::Bold());
+        label.setColor(SkColorSetRGB(98, 72, 35));
+        builder->pushStyle(label);
+        builder->addText("Note: ");
+        builder->pop();
+
+        builder->pushStyle(base);
+        builder->addText(noteText.c_str());
+        builder->pop();
+
+        return builder->Build();
+    }
+
+    float LayoutAndPaintParagraph(
+        std::unique_ptr<skia::textlayout::Paragraph>& paragraph,
+        SkCanvas* canvas,
+        float x,
+        float y,
+        float width) {
+        if (!paragraph) {
+            return y;
+        }
+
+        paragraph->layout(width);
+        paragraph->paint(canvas, x, y);
+        return y + paragraph->getHeight();
+    }
+
+    void DrawPageFrame(SkCanvas* canvas) {
+        SkPaint border;
+        border.setAntiAlias(true);
+        border.setStyle(SkPaint::kStroke_Style);
+        border.setStrokeWidth(1.5f);
+        border.setColor(SkColorSetARGB(255, 205, 190, 168));
+
+        canvas->drawRoundRect(
+            SkRect::MakeXYWH(26, 26, kPageWidth - 52, kPageHeight - 52),
+            18,
+            18,
+            border);
+    }
+
+    void DrawHeaderFooter(
+        SkCanvas* canvas,
+        int pageNumber,
+        const char* chapterTitle,
+        bool rightPage,
+        skiaexplorer::FontSystem& fonts) {
+        SkPaint rule;
+        rule.setAntiAlias(true);
+        rule.setStrokeWidth(1);
+        rule.setColor(SkColorSetARGB(255, 190, 182, 170));
+
+        SkPaint textPaint;
+        textPaint.setAntiAlias(true);
+        textPaint.setColor(SkColorSetRGB(70, 62, 54));
+
+        SkFont smallFont = MakeUiFont(fonts, 11.0f);
+
+        canvas->drawLine(kMargin, 42, kPageWidth - kMargin, 42, rule);
+        canvas->drawLine(kMargin, kPageHeight - 42, kPageWidth - kMargin, kPageHeight - 42, rule);
+
+        if (rightPage) {
+            canvas->drawString(chapterTitle, kMargin, 34, smallFont, textPaint);
+        }
+        else {
+            canvas->drawString(chapterTitle, kPageWidth - kMargin - 140, 34, smallFont, textPaint);
+        }
+
+        SkString pageText;
+        pageText.printf("%d", pageNumber);
+        canvas->drawString(pageText, kPageWidth * 0.5f - 4, kPageHeight - 22, smallFont, textPaint);
+    }
+
+    void DrawCoverPage(SkCanvas* canvas, skiaexplorer::FontSystem& fonts) {
+        canvas->clear(SkColorSetRGB(247, 242, 232));
+
+        SkPaint panel;
+        panel.setAntiAlias(true);
+        panel.setColor(SkColorSetRGB(41, 84, 120));
+        canvas->drawRoundRect(SkRect::MakeXYWH(50, 50, kPageWidth - 100, kPageHeight - 100), 28, 28, panel);
+
+        SkPaint ring;
+        ring.setAntiAlias(true);
+        ring.setStyle(SkPaint::kStroke_Style);
+        ring.setStrokeWidth(3);
+        ring.setColor(SkColorSetARGB(160, 255, 240, 220));
+        canvas->drawCircle(kPageWidth - 120, 126, 54, ring);
+        canvas->drawCircle(kPageWidth - 120, 126, 76, ring);
+
+        SkPaint titlePaint;
+        titlePaint.setAntiAlias(true);
+        titlePaint.setColor(SK_ColorWHITE);
+
+        SkFont titleFont = MakeUiFont(fonts, 34.0f);
+
+        canvas->drawString("Skia Book Demo", 82, 210, titleFont, titlePaint);
+
+        auto subtitle = BuildNoteParagraph(
+            fonts,
+            "A multi-page PDF with text, shapes, images, and running folios.");
+        LayoutAndPaintParagraph(subtitle, canvas, 82, 226, 360);
+
+        SkPaint accent;
+        accent.setAntiAlias(true);
+        accent.setColor(SkColorSetRGB(242, 166, 90));
+        canvas->drawRoundRect(SkRect::MakeXYWH(82, 300, 210, 84), 18, 18, accent);
+
+        SkPaint badgeText;
+        badgeText.setAntiAlias(true);
+        badgeText.setColor(SkColorSetRGB(32, 32, 32));
+
+        SkFont badgeFont = MakeUiFont(fonts, 20.0f);
+        canvas->drawString("Volume 1", 118, 348, badgeFont, badgeText);
+
+        DrawPageFrame(canvas);
+    }
+
+    void DrawChapterSpread(
+        SkCanvas* canvas,
+        int pageNumber,
+        const char* chapterTitle,
+        const std::string& chapterLead,
+        const std::string& chapterBody,
+        sk_sp<SkImage> image,
+        skiaexplorer::FontSystem& fonts) {
+        canvas->clear(SkColorSetRGB(252, 249, 244));
+        DrawPageFrame(canvas);
+        DrawHeaderFooter(canvas, pageNumber, chapterTitle, (pageNumber % 2) == 1, fonts);
+
+        SkPaint headingPaint;
+        headingPaint.setAntiAlias(true);
+        headingPaint.setColor(SkColorSetRGB(28, 32, 44));
+
+        SkFont chapterFont = MakeUiFont(fonts, 26.0f);
+
+        canvas->drawString(chapterTitle, kMargin, 92, chapterFont, headingPaint);
+
+        SkPaint chapterBar;
+        chapterBar.setAntiAlias(true);
+        chapterBar.setColor(SkColorSetRGB(214, 128, 82));
+        canvas->drawRect(SkRect::MakeXYWH(kMargin, 104, 120, 6), chapterBar);
+
+        auto bodyParagraph = BuildBodyParagraph(fonts, chapterLead, chapterBody);
+        float textBottom = LayoutAndPaintParagraph(bodyParagraph, canvas, kMargin, 144, 260);
+
+        SkPaint geometric;
+        geometric.setAntiAlias(true);
+        geometric.setColor(SkColorSetARGB(255, 219, 228, 235));
+        canvas->drawRoundRect(SkRect::MakeXYWH(350, 150, 170, 110), 22, 22, geometric);
+
+        geometric.setColor(SkColorSetARGB(255, 103, 138, 166));
+        canvas->drawCircle(438, 206, 32, geometric);
+
+        SkPathBuilder wave;
+        wave.moveTo(332, 310);
+        wave.cubicTo(382, 270, 428, 356, 492, 314);
+        wave.cubicTo(528, 292, 548, 318, 558, 348);
+
+        SkPaint wavePaint;
+        wavePaint.setAntiAlias(true);
+        wavePaint.setStyle(SkPaint::kStroke_Style);
+        wavePaint.setStrokeWidth(6);
+        wavePaint.setColor(SkColorSetRGB(232, 163, 96));
+        canvas->drawPath(wave.detach(), wavePaint);
+
+        if (image) {
+            const SkRect dst = SkRect::MakeXYWH(318, 394, 230, 170);
+            canvas->drawImageRect(image, dst, SkSamplingOptions());
+
+            SkPaint imageFrame;
+            imageFrame.setAntiAlias(true);
+            imageFrame.setStyle(SkPaint::kStroke_Style);
+            imageFrame.setStrokeWidth(1.5f);
+            imageFrame.setColor(SkColorSetARGB(255, 170, 160, 148));
+            canvas->drawRect(dst, imageFrame);
+        }
+        else {
+            SkPaint placeholder;
+            placeholder.setAntiAlias(true);
+            placeholder.setColor(SkColorSetRGB(231, 236, 239));
+            canvas->drawRect(SkRect::MakeXYWH(318, 394, 230, 170), placeholder);
+
+            SkPaint placeholderText;
+            placeholderText.setAntiAlias(true);
+            placeholderText.setColor(SkColorSetRGB(90, 98, 104));
+            canvas->drawString("Image placeholder", 370, 486, MakeUiFont(fonts, 15.0f), placeholderText);
+        }
+
+        SkPaint noteBox;
+        noteBox.setAntiAlias(true);
+        noteBox.setColor(SkColorSetARGB(255, 244, 236, 214));
+        canvas->drawRoundRect(
+            SkRect::MakeXYWH(kMargin, std::max(430.0f, textBottom + 28.0f), 230, 92),
+            16,
+            16,
+            noteBox);
+
+        auto noteParagraph = BuildNoteParagraph(
+            fonts,
+            "the same canvas-style drawing code can be reused for PDF pages, with proper Unicode and multiline layout.");
+        LayoutAndPaintParagraph(
+            noteParagraph,
+            canvas,
+            kMargin + 18,
+            std::max(452.0f, textBottom + 42.0f),
+            190.0f);
+    }
+
+} // namespace
+
+bool WriteBookStylePdf(const char* pdfPath, const char* imagePath) {
+    SkFILEWStream out(pdfPath);
+    if (!out.isValid()) {
+        return false;
+    }
+
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+
+    SkPDF::Metadata metadata;
+    metadata.fTitle = SkString("Skia Book Style PDF");
+    metadata.fAuthor = SkString("Skia Doc");
+    metadata.fSubject = SkString("Illustrated multi-page PDF export");
+    metadata.fKeywords = SkString("skia,pdf,book,multipage");
+    metadata.fRasterDPI = 180.0f;
+    metadata.fEncodingQuality = 90;
+    metadata.fCompressionLevel = SkPDF::Metadata::CompressionLevel::Average;
+    metadata.allowNoJpegs = true;
+
+    sk_sp<SkDocument> doc = SkPDF::MakeDocument(&out, metadata);
+    if (!doc) {
+        return false;
+    }
+
+    sk_sp<SkImage> image;
+    if (imagePath && imagePath[0] != '\0') {
+        sk_sp<SkData> data = SkData::MakeFromFileName(imagePath);
+        if (data) {
+            image = SkImages::DeferredFromEncodedData(data);
+        }
+    }
+
+    {
+        SkCanvas* canvas = doc->beginPage(kPageWidth, kPageHeight);
+        DrawCoverPage(canvas, fonts);
+        doc->endPage();
+    }
+
+    {
+        SkCanvas* canvas = doc->beginPage(kPageWidth, kPageHeight);
+        DrawChapterSpread(
+            canvas,
+            2,
+            "Chapter One: Foundations",
+            "Skia works especially well for document generation because the same drawing model ",
+            "used for windows and surfaces can also target PDF pages. This makes it natural to "
+            "mix headings, shapes, diagrams, and images in a single reusable rendering pipeline.",
+            image,
+            fonts);
+        doc->endPage();
+    }
+
+    {
+        SkCanvas* canvas = doc->beginPage(kPageWidth, kPageHeight);
+        DrawChapterSpread(
+            canvas,
+            3,
+            "Chapter Two: Visual Rhythm",
+            "A book-like page benefits from hierarchy and rhythm. ",
+            "Repeated header rules, page numbers, balanced margins, decorative geometry, and "
+            "highlighted callouts help the document feel designed instead of merely exported.",
+            image,
+            fonts);
+        doc->endPage();
+    }
+
+    doc->close();
+    return true;
+}
+```
+
+## How to use it
+
+```cpp
+WriteBookStylePdf(
+    "F:\\skia-book-demo.pdf",
+    "C:\\Users\\deb\\Downloads\\small-cat.webp");
+```
+
+## Notes
+
+- If your build supports JPEG PDF helpers, you can replace `allowNoJpegs = true` with JPEG callbacks for better image-heavy PDFs.
+- If `imagePath` fails to load, the example still works and draws a placeholder panel instead.
+- The page number is drawn manually, which is often the simplest approach for document-style exports.
+- Page size here is US Letter in points: `612 x 792`.
+
+## Related pages
+
+- [Skia PDF Export Example](/docs/examples/pdf-export)
+- [Skia Image Adjustments Example](/docs/examples/image-adjustments)
+- [Render SVG with Skia](/docs/svg)

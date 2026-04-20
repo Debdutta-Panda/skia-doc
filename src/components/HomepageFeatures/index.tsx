@@ -10,29 +10,29 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    //Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Practical Setup Guidance',
     description: (
       <>
-        Skia Doc is easy to use and provides comprehensive documentation for the Skia graphics library.
+        Windows-first setup notes, Visual Studio integration details, and a path from a blank
+        project to a working Skia app.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    //Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Visual API Examples',
     description: (
       <>
-        Skia Doc is to the point and focuses on providing the most relevant information about Skia, allowing you to quickly find what you need.
+        Core drawing APIs are paired with images and compact C++ snippets so it is easier to see
+        what each call actually does.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    //Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Advanced Building Blocks',
     description: (
       <>
-        Skia Doc is comprehensively documented and provides detailed information about Skia's features, APIs, and usage, making it a valuable resource for developers working with Skia.
+        Topics like SVG, color filters, runtime effects, transforms, and Unicode text are covered
+        with a practical developer focus.
       </>
     ),
   },
@@ -40,10 +40,8 @@ const FeatureList: FeatureItem[] = [
 
 function Feature({title, description}: FeatureItem) {
   return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-      </div>
-      <div className="text--center padding-horiz--md">
+    <div className={clsx('col col--4', styles.featureCard)}>
+      <div className={styles.featureInner}>
         <Heading as="h3">{title}</Heading>
         <p>{description}</p>
       </div>
@@ -55,6 +53,13 @@ export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
       <div className="container">
+        <div className={styles.sectionHeader}>
+          <Heading as="h2">What You Will Find Here</Heading>
+          <p>
+            This documentation is meant to be read while building. It favors code you can run,
+            screenshots you can compare against, and explanations that stay close to real Skia APIs.
+          </p>
+        </div>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />

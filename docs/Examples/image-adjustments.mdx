@@ -1,16 +1,40 @@
 ---
 sidebar_position: 2
+title: Skia Image Adjustments Example
+description: Apply brightness, contrast, saturation, and vibrance to an image in Skia using color filters and runtime effects.
+slug: /examples/image-adjustments
+keywords:
+  - skia image filter example
+  - skia brightness contrast saturation
+  - skia runtime effect color filter
+  - skia vibrance
 ---
 
-# Image Adjustments
+# Skia Image Adjustments Example
+
+Skia gives you the low-level building blocks for image adjustments through:
+
+- `SkColorFilters::Matrix`
+- `SkColorFilters::Compose`
+- runtime color filters with `SkRuntimeEffect`
+
+This example combines those primitives into a reusable image-adjustment pipeline for:
+
+- brightness
+- contrast
+- saturation
+- vibrance
+
+## What this demonstrates
+
+- how to create custom color filters
+- how to combine multiple color filters in a predictable order
+- where `SkColorMatrix` is enough and where a runtime effect is a better fit
+
+## Adjustment helpers
 
 ```cpp
 static sk_sp<SkColorFilter> MakeBrightness(float brightness) {
-    /*brightness = std::clamp(brightness, -1.0f, 1.0f);
-    if (std::abs(brightness) < 1e-6f) {
-        return nullptr;
-    }*/
-
     static const SkRuntimeEffect* effect =
         SkRuntimeEffect::MakeForColorFilter(SkString(
             "uniform half a;"
@@ -23,12 +47,8 @@ static sk_sp<SkColorFilter> MakeBrightness(float brightness) {
     const float a = std::pow(2.0f, brightness * 1.8f);
     return effect->makeColorFilter(SkData::MakeWithCopy(&a, sizeof(a)));
 }
-static sk_sp<SkColorFilter> MakeContrast(float contrast) {
-    /*contrast = std::clamp(contrast, -1.0f, 1.0f);
-    if (std::abs(contrast) < 1e-6f) {
-        return nullptr;
-    }*/
 
+static sk_sp<SkColorFilter> MakeContrast(float contrast) {
     struct Coeffs {
         float a, b, c;
     };
@@ -51,23 +71,14 @@ static sk_sp<SkColorFilter> MakeContrast(float contrast) {
 
     return effect->makeColorFilter(SkData::MakeWithCopy(&coeffs, sizeof(coeffs)));
 }
-static sk_sp<SkColorFilter> MakeSaturation(float saturation) {
-    /*saturation = std::clamp(saturation, -1.0f, 1.0f);
-    if (std::abs(saturation) < 1e-6f) {
-        return nullptr;
-    }*/
 
-    // Simple matrix version:
+static sk_sp<SkColorFilter> MakeSaturation(float saturation) {
     SkColorMatrix m;
     m.setSaturation(1.0f + saturation);
     return SkColorFilters::Matrix(m);
 }
-static sk_sp<SkColorFilter> MakeVibrance(float vibrance) {
-    /*vibrance = std::clamp(vibrance, -1.0f, 1.0f);
-    if (std::abs(vibrance) < 1e-6f) {
-        return nullptr;
-    }*/
 
+static sk_sp<SkColorFilter> MakeVibrance(float vibrance) {
     static const SkRuntimeEffect* effect =
         SkRuntimeEffect::MakeForColorFilter(SkString(
             "uniform half u_amount;"
@@ -94,14 +105,11 @@ static sk_sp<SkColorFilter> Compose(
     return SkColorFilters::Compose(std::move(a), std::move(b));
 }
 
-// Recommended order:
-// brightness -> contrast -> saturation -> vibrance
 static sk_sp<SkColorFilter> MakeAdjustments(
     float brightness,
     float contrast,
     float saturation,
     float vibrance) {
-
     sk_sp<SkColorFilter> cf;
 
     cf = Compose(MakeBrightness(brightness), std::move(cf));
@@ -111,54 +119,50 @@ static sk_sp<SkColorFilter> MakeAdjustments(
 
     return cf;
 }
-
-void DrawScene(SkCanvas* canvas, const AppState& state)
-{
-    canvas->clear(SK_ColorWHITE);
-    //////////////////////////////////////////
-    std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
-    const std::string narrowPath = path.string();
-    sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
-    sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
-    SkPaint paint;
-    //////////////////////////////////////////
-    canvas->drawImage(image, 0, 0, SkSamplingOptions(), &paint);
-
-    paint.setColorFilter(MakeBrightness(i * 0.1));
-    canvas->drawImage(image, 250, 0, SkSamplingOptions(), &paint);
-
-    paint.setColorFilter(MakeContrast(i * 0.1));
-    canvas->drawImage(image, 500, 0, SkSamplingOptions(), &paint);
-
-    paint.setColorFilter(MakeSaturation(i * 0.1));
-    canvas->drawImage(image, 0, 250, SkSamplingOptions(), &paint);
-
-    paint.setColorFilter(MakeVibrance(i * 0.1));
-    canvas->drawImage(image, 250, 250, SkSamplingOptions(), &paint);
-}
 ```
 
-![Bell Icon](/img/image39.png)
+## Using the filter
 
 ```cpp
-void DrawScene(SkCanvas* canvas, const AppState& state)
-{
+void DrawScene(SkCanvas* canvas, const AppState& state) {
     canvas->clear(SK_ColorWHITE);
-    //////////////////////////////////////////
+
     std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
     const std::string narrowPath = path.string();
+
     sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+    if (!data) {
+        return;
+    }
+
     sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+    if (!image) {
+        return;
+    }
+
     SkPaint paint;
     paint.setColorFilter(MakeAdjustments(
-        0.15f,   // brightness
-        0.20f,   // contrast
-        0.25f,   // saturation
-        0.30f    // vibrance
+        0.15f,  // brightness
+        0.20f,  // contrast
+        0.25f,  // saturation
+        0.30f   // vibrance
     ));
 
-    canvas->drawImage(image, 10, 10, SkSamplingOptions(), &paint);
+    canvas->drawImage(image, 20, 20);
+    canvas->drawImage(image, 320, 20, SkSamplingOptions(), &paint);
 }
 ```
 
-![Bell Icon](/img/image42.png)
+![Image adjustment example showing the original image beside the filtered result](/img/image42.png)
+
+## Notes
+
+- Replace the demo image path with one that exists on your machine.
+- `saturation` is handled with a color matrix.
+- `brightness`, `contrast`, and `vibrance` are implemented with runtime color filters.
+- The compose order affects the final result, so keep the adjustment order intentional.
+
+## Related pages
+
+- [SkPaint Basics](/docs/paint)
+- [Render SVG with Skia](/docs/svg)
