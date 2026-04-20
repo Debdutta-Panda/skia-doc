@@ -1,0 +1,175 @@
+---
+sidebar_position: 3
+---
+
+# Transformations
+
+## Simple
+
+```cpp
+canvas->clear(SK_ColorWHITE);
+//////////////////////////////////////////
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorBLUE);
+
+SkRect rect = SkRect::MakeXYWH(-50, -30, 100, 60);
+
+canvas->save();
+canvas->translate(200, 200); // move origin
+canvas->rotate(30);          // rotate around new origin
+canvas->scale(1.2f, 0.8f);   // scale in local space
+canvas->drawRect(rect, paint);
+canvas->restore();
+```
+
+![Bell Icon](/img/image40.png)
+
+## Interesting
+```cpp
+static void DrawAxes(SkCanvas* canvas, float size = 120.0f) {
+    SkPaint axis;
+    axis.setAntiAlias(true);
+    axis.setStrokeWidth(2);
+    axis.setStyle(SkPaint::kStroke_Style);
+
+    axis.setColor(SkColorSetRGB(220, 70, 70));
+    canvas->drawLine(0, 0, size, 0, axis);  // +X
+
+    axis.setColor(SkColorSetRGB(70, 140, 240));
+    canvas->drawLine(0, 0, 0, size, axis);  // +Y
+
+    SkPaint center;
+    center.setAntiAlias(true);
+    center.setColor(SK_ColorBLACK);
+    canvas->drawCircle(0, 0, 4, center);
+}
+
+static void DrawReferenceBox(SkCanvas* canvas, const SkRect& r) {
+    SkPaint p;
+    p.setAntiAlias(true);
+    p.setStyle(SkPaint::kStroke_Style);
+    p.setStrokeWidth(2);
+    p.setColor(SkColorSetARGB(120, 80, 80, 80));
+    canvas->drawRect(r, p);
+}
+
+static void DrawObject(SkCanvas* canvas) {
+    // Local object centered near origin so transforms are easy to see.
+    SkPaint fill;
+    fill.setAntiAlias(true);
+    fill.setColor(SkColorSetRGB(255, 180, 40));
+
+    SkPaint stroke;
+    stroke.setAntiAlias(true);
+    stroke.setStyle(SkPaint::kStroke_Style);
+    stroke.setStrokeWidth(3);
+    stroke.setColor(SkColorSetRGB(35, 35, 35));
+
+    // Main body
+    SkRect body = SkRect::MakeXYWH(-45, -30, 90, 60);
+    canvas->drawRoundRect(body, 12, 12, fill);
+    canvas->drawRoundRect(body, 12, 12, stroke);
+
+    // A triangle "arrow" nose to show orientation clearly
+    SkPathBuilder nose;
+    nose.moveTo(45, -18);
+    nose.lineTo(78, 0);
+    nose.lineTo(45, 18);
+    nose.close();
+
+    SkPaint noseFill = fill;
+    noseFill.setColor(SkColorSetRGB(255, 110, 70));
+    canvas->drawPath(nose.detach(), noseFill);
+    canvas->drawPath(nose.detach(), stroke);
+
+    // A small circle marker in top-left area so scale/skew are easier to notice
+    SkPaint marker;
+    marker.setAntiAlias(true);
+    marker.setColor(SkColorSetRGB(30, 30, 30));
+    canvas->drawCircle(-22, -10, 6, marker);
+}
+
+static void DrawLabeledDemo(SkCanvas* canvas,
+    const char* label,
+    float x,
+    float y,
+    std::function<void(SkCanvas*)> transformFn) {
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+    SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 28.0f);
+    font.setSize(20);  // text size
+
+    SkPaint textPaint;
+    textPaint.setAntiAlias(true);
+    textPaint.setColor(SkColorSetRGB(25, 25, 25));
+
+    canvas->save();
+    canvas->translate(x, y);
+
+    canvas->drawString(label, -70, -95, font, textPaint);
+
+    DrawAxes(canvas);
+    DrawReferenceBox(canvas, SkRect::MakeXYWH(-45, -30, 90, 60));
+
+    transformFn(canvas);
+    DrawObject(canvas);
+
+    canvas->restore();
+}
+
+void DrawTransformationDemo(SkCanvas* canvas, int width, int height) {
+    canvas->clear(SkColorSetRGB(248, 246, 240));
+
+    // Title
+    SkFont titleFont;
+    titleFont.setSize(28);
+
+    SkPaint titlePaint;
+    titlePaint.setAntiAlias(true);
+    titlePaint.setColor(SkColorSetRGB(20, 20, 20));
+
+    canvas->drawString("Skia Transformations", 30, 40, titleFont, titlePaint);
+
+    // 1. Original
+    DrawLabeledDemo(canvas, "Original", 140, 180, [](SkCanvas* c) {
+        // no transform
+        });
+
+    // 2. Translation
+    DrawLabeledDemo(canvas, "Translate(35, 20)", 400, 180, [](SkCanvas* c) {
+        c->translate(35, 20);
+        });
+
+    // 3. Rotation around local origin
+    DrawLabeledDemo(canvas, "Rotate(30)", 660, 180, [](SkCanvas* c) {
+        c->rotate(30.0f);
+        });
+
+    // 4. Scale around local origin
+    DrawLabeledDemo(canvas, "Scale(1.35, 0.70)", 140, 420, [](SkCanvas* c) {
+        c->scale(1.35f, 0.70f);
+        });
+
+    // 5. Skew
+    DrawLabeledDemo(canvas, "Skew(0.35, 0.0)", 400, 420, [](SkCanvas* c) {
+        c->skew(0.35f, 0.0f);
+        });
+
+    // 6. Combined transform
+    DrawLabeledDemo(canvas, "Translate + Rotate + Scale", 660, 420, [](SkCanvas* c) {
+        c->translate(20, 10);
+        c->rotate(-25.0f);
+        c->scale(1.15f, 1.15f);
+        });
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+    //////////////////////////////////////////
+    DrawTransformationDemo(canvas, 500, 500);
+}
+```
+
+![Bell Icon](/img/image41.png)

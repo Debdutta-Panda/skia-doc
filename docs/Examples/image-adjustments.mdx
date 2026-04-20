@@ -1,0 +1,164 @@
+---
+sidebar_position: 2
+---
+
+# Image Adjustments
+
+```cpp
+static sk_sp<SkColorFilter> MakeBrightness(float brightness) {
+    /*brightness = std::clamp(brightness, -1.0f, 1.0f);
+    if (std::abs(brightness) < 1e-6f) {
+        return nullptr;
+    }*/
+
+    static const SkRuntimeEffect* effect =
+        SkRuntimeEffect::MakeForColorFilter(SkString(
+            "uniform half a;"
+            "half4 main(half4 color) {"
+            "color.rgb = 1 - pow(1 - color.rgb, half3(a));"
+            "return color;"
+            "}"))
+        .effect.release();
+
+    const float a = std::pow(2.0f, brightness * 1.8f);
+    return effect->makeColorFilter(SkData::MakeWithCopy(&a, sizeof(a)));
+}
+static sk_sp<SkColorFilter> MakeContrast(float contrast) {
+    /*contrast = std::clamp(contrast, -1.0f, 1.0f);
+    if (std::abs(contrast) < 1e-6f) {
+        return nullptr;
+    }*/
+
+    struct Coeffs {
+        float a, b, c;
+    };
+
+    static const SkRuntimeEffect* effect =
+        SkRuntimeEffect::MakeForColorFilter(SkString(
+            "uniform half a;"
+            "uniform half b;"
+            "uniform half c;"
+            "half4 main(half4 color) {"
+            "color.rgb = ((a * color.rgb + b) * color.rgb + c) * color.rgb;"
+            "return color;"
+            "}"))
+        .effect.release();
+
+    Coeffs coeffs;
+    coeffs.b = SK_ScalarPI * contrast;
+    coeffs.a = -2.0f * coeffs.b / 3.0f;
+    coeffs.c = 1.0f - coeffs.b / 3.0f;
+
+    return effect->makeColorFilter(SkData::MakeWithCopy(&coeffs, sizeof(coeffs)));
+}
+static sk_sp<SkColorFilter> MakeSaturation(float saturation) {
+    /*saturation = std::clamp(saturation, -1.0f, 1.0f);
+    if (std::abs(saturation) < 1e-6f) {
+        return nullptr;
+    }*/
+
+    // Simple matrix version:
+    SkColorMatrix m;
+    m.setSaturation(1.0f + saturation);
+    return SkColorFilters::Matrix(m);
+}
+static sk_sp<SkColorFilter> MakeVibrance(float vibrance) {
+    /*vibrance = std::clamp(vibrance, -1.0f, 1.0f);
+    if (std::abs(vibrance) < 1e-6f) {
+        return nullptr;
+    }*/
+
+    static const SkRuntimeEffect* effect =
+        SkRuntimeEffect::MakeForColorFilter(SkString(
+            "uniform half u_amount;"
+            "half4 main(half4 c) {"
+            "half cmin = min(c.r, min(c.g, c.b));"
+            "half cmax = max(c.r, max(c.g, c.b));"
+            "half chroma = max(cmax - cmin, 0.0001);"
+            "half mid = (cmin + cmax) * 0.5;"
+            "half satNorm = chroma / max(c.a, 0.0001);"
+            "half scale = 1 + u_amount * (1 - satNorm);"
+            "half scaleMax = min(mid, c.a - mid) / chroma * 2;"
+            "scale = clamp(scale, 0.0, scaleMax);"
+            "c.rgb = mid + (c.rgb - mid) * scale;"
+            "return c;"
+            "}"))
+        .effect.release();
+
+    return effect->makeColorFilter(SkData::MakeWithCopy(&vibrance, sizeof(vibrance)));
+}
+
+static sk_sp<SkColorFilter> Compose(
+    sk_sp<SkColorFilter> a,
+    sk_sp<SkColorFilter> b) {
+    return SkColorFilters::Compose(std::move(a), std::move(b));
+}
+
+// Recommended order:
+// brightness -> contrast -> saturation -> vibrance
+static sk_sp<SkColorFilter> MakeAdjustments(
+    float brightness,
+    float contrast,
+    float saturation,
+    float vibrance) {
+
+    sk_sp<SkColorFilter> cf;
+
+    cf = Compose(MakeBrightness(brightness), std::move(cf));
+    cf = Compose(MakeContrast(contrast), std::move(cf));
+    cf = Compose(MakeSaturation(saturation), std::move(cf));
+    cf = Compose(MakeVibrance(vibrance), std::move(cf));
+
+    return cf;
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+    //////////////////////////////////////////
+    std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+    const std::string narrowPath = path.string();
+    sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+    sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+    SkPaint paint;
+    //////////////////////////////////////////
+    canvas->drawImage(image, 0, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeBrightness(i * 0.1));
+    canvas->drawImage(image, 250, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeContrast(i * 0.1));
+    canvas->drawImage(image, 500, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeSaturation(i * 0.1));
+    canvas->drawImage(image, 0, 250, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeVibrance(i * 0.1));
+    canvas->drawImage(image, 250, 250, SkSamplingOptions(), &paint);
+}
+```
+
+![Bell Icon](/img/image39.png)
+
+```cpp
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+    //////////////////////////////////////////
+    std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+    const std::string narrowPath = path.string();
+    sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+    sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+    SkPaint paint;
+    paint.setColorFilter(MakeAdjustments(
+        0.15f,   // brightness
+        0.20f,   // contrast
+        0.25f,   // saturation
+        0.30f    // vibrance
+    ));
+
+    canvas->drawImage(image, 10, 10, SkSamplingOptions(), &paint);
+}
+```
+
+![Bell Icon](/img/image42.png)

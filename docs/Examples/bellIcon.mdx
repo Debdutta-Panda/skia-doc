@@ -1,0 +1,140 @@
+---
+sidebar_position: 1
+---
+
+# Bell Icon
+
+```cpp
+void drawIcon(SkCanvas* canvas) {
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setStyle(SkPaint::kFill_Style);
+
+    // ---------------- PATH 1 (#394240) ----------------
+    {
+        SkPathBuilder pb;
+
+        pb.moveTo(56, 48);
+        pb.cubicTo(52.687f, 48, 50, 45.313f, 50, 42);
+        pb.lineTo(50, 22);
+        pb.cubicTo(50, 13.423f, 43.996f, 6.26f, 35.965f, 4.452f);
+        pb.cubicTo(35.984f, 4.304f, 36, 4.154f, 36, 4);
+        pb.cubicTo(36, 1.791f, 34.209f, 0, 32, 0);
+        pb.cubicTo(29.791f, 0, 28, 1.791f, 28, 4);
+        pb.cubicTo(28, 4.154f, 28.016f, 4.304f, 28.035f, 4.452f);
+        pb.cubicTo(20.004f, 6.26f, 14, 13.423f, 14, 22);
+        pb.lineTo(14, 42);
+        pb.cubicTo(14, 45.313f, 11.313f, 48, 8, 48);
+        pb.cubicTo(5.791f, 48, 4, 49.791f, 4, 52);
+        pb.cubicTo(4, 54.209f, 5.791f, 56, 8, 56);
+        pb.lineTo(24, 56);
+        pb.cubicTo(24, 60.418f, 27.582f, 64, 32, 64);
+        pb.cubicTo(36.418f, 64, 40, 60.418f, 40, 56);
+        pb.lineTo(56, 56);
+        pb.cubicTo(58.209f, 56, 60, 54.209f, 60, 52);
+        pb.cubicTo(60, 49.791f, 58.209f, 48, 56, 48);
+        pb.close();
+
+        paint.setColor(0xFF394240);
+        canvas->drawPath(pb.detach(), paint);
+    }
+
+    // ---------------- PATH 2 (#506C7F) ----------------
+    {
+        SkPathBuilder pb;
+
+        pb.moveTo(32, 2);
+        pb.cubicTo(33.104f, 2, 34, 2.896f, 34, 4);
+        pb.cubicTo(34, 4.04f, 33.986f, 4.075f, 33.983f, 4.115f);
+        pb.cubicTo(33.332f, 4.043f, 32.671f, 4, 32, 4);
+        pb.cubicTo(31.329f, 4, 30.668f, 4.043f, 30.017f, 4.115f);
+        pb.cubicTo(30.014f, 4.075f, 30, 4.04f, 30, 4);
+        pb.cubicTo(30, 2.896f, 30.896f, 2, 32, 2);
+        pb.close();
+
+        paint.setColor(0xFF506C7F);
+        canvas->drawPath(pb.detach(), paint);
+    }
+
+    // ---------------- PATH 3 (#F76D57) ----------------
+    {
+        SkPathBuilder pb;
+
+        pb.moveTo(16, 22);
+        pb.cubicTo(16, 13.163f, 23.163f, 6, 32, 6);
+        pb.cubicTo(40.837f, 6, 48, 13.163f, 48, 22);
+        pb.lineTo(48, 34);
+        pb.lineTo(16, 34);
+        pb.close();
+
+        paint.setColor(0xFFF76D57);
+        canvas->drawPath(pb.detach(), paint);
+    }
+
+    // ---------------- RECT (#F9EBB2) ----------------
+    {
+        SkPathBuilder pb;
+        pb.addRect({ 16,36,48,40 });
+
+        paint.setColor(0xFFF9EBB2);
+        canvas->drawPath(pb.detach(), paint);
+    }
+
+    // ---------------- PATH 4 (#B4CCB9) ----------------
+    {
+        SkPathBuilder pb;
+
+        pb.moveTo(32, 62);
+        pb.cubicTo(28.687f, 62, 26, 59.313f, 26, 56);
+        pb.lineTo(38, 56);
+        pb.cubicTo(38, 59.313f, 35.313f, 62, 32, 62);
+        pb.close();
+
+        paint.setColor(0xFFB4CCB9);
+        canvas->drawPath(pb.detach(), paint);
+    }
+
+    // ---------------- PATH 5 (#F76D57) ----------------
+    {
+        SkPathBuilder pb;
+
+        pb.moveTo(56, 54);
+        pb.lineTo(8, 54);
+        pb.cubicTo(6.896f, 54, 6, 53.104f, 6, 52);
+        pb.cubicTo(6, 50.896f, 6.896f, 50, 8, 50);
+        pb.cubicTo(12.418f, 50, 16, 46.418f, 16, 42);
+        pb.lineTo(48, 42);
+        pb.cubicTo(48, 46.418f, 51.582f, 50, 56, 50);
+        pb.cubicTo(57.104f, 50, 58, 50.896f, 58, 52);
+        pb.cubicTo(58, 53.104f, 57.104f, 54, 56, 54);
+        pb.close();
+
+        paint.setColor(0xFFF76D57);
+        canvas->drawPath(pb.detach(), paint);
+    }
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+    SkPaint paint;
+    paint.setAntiAlias(true);
+
+    float W = 512;  // target width
+    float H = 512;  // target height
+
+    canvas->save();
+
+    // move to position if needed
+    canvas->translate(20, 20);
+
+    // scale relative to original 64x64
+    canvas->scale(W / 64.0f, H / 64.0f);
+
+    drawIcon1(canvas);  // your function
+
+    canvas->restore();
+}
+```
+
+![Bell Icon](/img/image38.png)
