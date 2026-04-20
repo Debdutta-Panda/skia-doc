@@ -121,7 +121,40 @@ static sk_sp<SkColorFilter> MakeAdjustments(
 }
 ```
 
-## Using the filter
+## Compare the individual adjustments
+
+This first demo is useful when you want to see brightness, contrast, saturation, and vibrance side by side.
+
+```cpp
+void DrawScene(SkCanvas* canvas, const AppState& state)
+{
+    canvas->clear(SK_ColorWHITE);
+
+    std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+    const std::string narrowPath = path.string();
+    sk_sp<SkData> data = SkData::MakeFromFileName(narrowPath.c_str());
+    sk_sp<SkImage> image = SkImages::DeferredFromEncodedData(data);
+    SkPaint paint;
+
+    canvas->drawImage(image, 0, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeBrightness(i * 0.1f));
+    canvas->drawImage(image, 250, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeContrast(i * 0.1f));
+    canvas->drawImage(image, 500, 0, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeSaturation(i * 0.1f));
+    canvas->drawImage(image, 0, 250, SkSamplingOptions(), &paint);
+
+    paint.setColorFilter(MakeVibrance(i * 0.1f));
+    canvas->drawImage(image, 250, 250, SkSamplingOptions(), &paint);
+}
+```
+
+![Comparison grid showing original image plus separate brightness, contrast, saturation, and vibrance adjustments](/img/image39.png)
+
+## Compose the filters into one final look
 
 ```cpp
 void DrawScene(SkCanvas* canvas, const AppState& state) {

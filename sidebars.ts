@@ -20,7 +20,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Advanced Topics',
-      items: ['svg', 'unicodeText'],
+      items: ['svg', 'unicodeText', 'image-gallery'],
     },
     {
       type: 'category',
