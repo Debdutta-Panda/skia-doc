@@ -20,7 +20,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Advanced Topics',
-      items: ['svg', 'unicodeText', 'image-gallery'],
+      items: ['path-operations', 'svg', 'unicodeText', 'image-gallery'],
     },
     {
       type: 'category',
@@ -28,6 +28,11 @@ const sidebars: SidebarsConfig = {
       items: [
         'Examples/transformations',
         'Examples/image-adjustments',
+        'Examples/shader-gallery',
+        'Examples/runtime-effect-playground',
+        'Examples/image-filter-chain',
+        'Examples/paint-effects-comparison',
+        'Examples/picture-recording-replay',
         'Examples/pdf-export',
         'Examples/book-style-pdf',
         'Examples/bellIcon',

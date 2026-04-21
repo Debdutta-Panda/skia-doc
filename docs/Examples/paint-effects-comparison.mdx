@@ -1,0 +1,146 @@
+---
+sidebar_position: 9
+title: Skia Color, Mask, and Blend Effects Comparison
+description: Compare color filters, mask filters, and blend modes in one Skia scene to understand what each effect family actually changes.
+slug: /examples/paint-effects-comparison
+keywords:
+  - skia color filter example
+  - skia mask filter example
+  - skia blend mode example
+  - skia paint comparison
+---
+
+# Skia Color, Mask, and Blend Effects Comparison
+
+These three effect families are often mixed up:
+
+- color filters change color output
+- mask filters affect coverage and edge softness
+- blend modes change how new pixels combine with existing pixels
+
+This page compares them side by side.
+
+## Example
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColorFilter.h"
+#include "include/core/SkMaskFilter.h"
+#include "include/core/SkPaint.h"
+#include "include/effects/SkColorMatrix.h"
+
+static void DrawBaseMotif(SkCanvas* canvas) {
+    SkPaint blue;
+    blue.setAntiAlias(true);
+    blue.setColor(SkColorSetRGB(50, 114, 220));
+    canvas->drawCircle(0, 0, 54, blue);
+
+    SkPaint orange;
+    orange.setAntiAlias(true);
+    orange.setColor(SkColorSetARGB(220, 242, 121, 64));
+    canvas->drawRect(SkRect::MakeXYWH(-36, -18, 92, 92), orange);
+}
+
+static void DrawPanelLabel(SkCanvas* canvas, const char* label, const SkFont& font) {
+    SkPaint p;
+    p.setAntiAlias(true);
+    p.setColor(SkColorSetRGB(28, 28, 28));
+    canvas->drawString(label, -70, 96, font, p);
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state) {
+    canvas->clear(SkColorSetRGB(250, 247, 241));
+
+    skiaexplorer::FontSystem fonts;
+    fonts.Initialize();
+    SkFont font(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 18.0f);
+
+    SkColorMatrix gray;
+    gray.setSaturation(0.0f);
+
+    for (int row = 0; row < 2; ++row) {
+        for (int col = 0; col < 3; ++col) {
+            canvas->save();
+            canvas->translate(160 + col * 250, 170 + row * 220);
+
+            SkPaint border;
+            border.setAntiAlias(true);
+            border.setStyle(SkPaint::kStroke_Style);
+            border.setStrokeWidth(2);
+            border.setColor(SkColorSetARGB(60, 40, 40, 40));
+            canvas->drawRoundRect(SkRect::MakeXYWH(-96, -86, 192, 148), 20, 20, border);
+
+            if (row == 0 && col == 0) {
+                DrawBaseMotif(canvas);
+                DrawPanelLabel(canvas, "Original", font);
+            } else if (row == 0 && col == 1) {
+                canvas->saveLayer(nullptr, nullptr);
+                DrawBaseMotif(canvas);
+                SkPaint cf;
+                cf.setColorFilter(SkColorFilters::Matrix(gray));
+                canvas->saveLayer(nullptr, &cf);
+                canvas->restore();
+                canvas->restore();
+                DrawPanelLabel(canvas, "Color Filter", font);
+            } else if (row == 0 && col == 2) {
+                SkPaint p;
+                p.setAntiAlias(true);
+                p.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, 9.0f));
+                p.setColor(SkColorSetRGB(50, 114, 220));
+                canvas->drawCircle(0, 0, 54, p);
+                p.setColor(SkColorSetARGB(220, 242, 121, 64));
+                canvas->drawRect(SkRect::MakeXYWH(-36, -18, 92, 92), p);
+                DrawPanelLabel(canvas, "Mask Filter", font);
+            } else if (row == 1 && col == 0) {
+                SkPaint bg;
+                bg.setColor(SkColorSetRGB(226, 228, 235));
+                canvas->drawRect(SkRect::MakeXYWH(-82, -70, 164, 116), bg);
+                DrawBaseMotif(canvas);
+                DrawPanelLabel(canvas, "Normal Blend", font);
+            } else if (row == 1 && col == 1) {
+                SkPaint bg;
+                bg.setColor(SkColorSetRGB(226, 228, 235));
+                canvas->drawRect(SkRect::MakeXYWH(-82, -70, 164, 116), bg);
+
+                SkPaint p;
+                p.setAntiAlias(true);
+                p.setColor(SkColorSetRGB(50, 114, 220));
+                p.setBlendMode(SkBlendMode::kMultiply);
+                canvas->drawCircle(0, 0, 54, p);
+                p.setColor(SkColorSetARGB(220, 242, 121, 64));
+                canvas->drawRect(SkRect::MakeXYWH(-36, -18, 92, 92), p);
+                DrawPanelLabel(canvas, "Blend: Multiply", font);
+            } else {
+                SkPaint bg;
+                bg.setColor(SkColorSetRGB(40, 44, 60));
+                canvas->drawRect(SkRect::MakeXYWH(-82, -70, 164, 116), bg);
+
+                SkPaint p;
+                p.setAntiAlias(true);
+                p.setColor(SkColorSetRGB(50, 114, 220));
+                p.setBlendMode(SkBlendMode::kScreen);
+                canvas->drawCircle(0, 0, 54, p);
+                p.setColor(SkColorSetARGB(220, 242, 121, 64));
+                canvas->drawRect(SkRect::MakeXYWH(-36, -18, 92, 92), p);
+                DrawPanelLabel(canvas, "Blend: Screen", font);
+            }
+
+            canvas->restore();
+        }
+    }
+}
+```
+
+![](/img/image48.png)
+
+## What this comparison teaches
+
+- color filters leave shape geometry alone and focus on recoloring
+- mask filters soften or expand edge coverage
+- blend modes depend heavily on what is already on the canvas
+
+## Related pages
+
+- [SkPaint Basics](/docs/paint)
+- [SkCanvas Drawing APIs](/docs/canvas-apis)
+

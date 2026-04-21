@@ -1,0 +1,247 @@
+---
+sidebar_position: 7
+title: Skia Path Operations
+description: Learn Skia boolean path operations with Op, Simplify, AsWinding, and SkOpBuilder.
+slug: /path-operations
+keywords:
+  - skia path ops
+  - skpathops
+  - skia boolean operations
+  - skia union intersect difference
+---
+
+# Skia Path Operations
+
+Skia path operations let you combine or normalize vector shapes.
+
+This is the part of Skia you use when you want to:
+
+- subtract one path from another
+- keep only the overlap between two shapes
+- merge shapes into one filled result
+- normalize self-overlapping or multi-contour geometry
+
+The main header is:
+
+```cpp
+#include "include/pathops/SkPathOps.h"
+```
+
+If you are new to path construction first read [Canvas](/docs/canvas) and [SkCanvas Drawing APIs](/docs/canvas-apis).
+
+## The Core Enum
+
+The boolean operations are described by `SkPathOp`:
+
+```cpp
+enum SkPathOp {
+    kDifference_SkPathOp,
+    kIntersect_SkPathOp,
+    kUnion_SkPathOp,
+    kXOR_SkPathOp,
+    kReverseDifference_SkPathOp,
+};
+```
+
+These mean:
+
+- `kDifference_SkPathOp`: `one - two`
+- `kIntersect_SkPathOp`: only the overlapping area
+- `kUnion_SkPathOp`: all filled area from both paths
+- `kXOR_SkPathOp`: filled area that belongs to exactly one path
+- `kReverseDifference_SkPathOp`: `two - one`
+
+## `Op`: Combine Two Paths
+
+The primary API is:
+
+```cpp
+std::optional<SkPath> Op(const SkPath& one, const SkPath& two, SkPathOp op);
+```
+
+It returns a new path on success and an empty optional on failure.
+
+The result is rebuilt as non-overlapping contours, and Skia may reduce curve order where possible.
+
+## Example: Union
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkPath.h"
+#include "include/pathops/SkPathOps.h"
+
+SkPathBuilder circle;
+circle.addCircle(120, 120, 70);
+
+SkPath rect;
+rect.addRect(SkRect::MakeXYWH(120, 70, 120, 120));
+
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorBLUE);
+
+if (auto result = Op(circle.detach(), rect, kUnion_SkPathOp)) {
+    canvas->drawPath(*result, paint);
+}
+```
+
+![Union of a circle and rectangle](/img/image43.png)
+
+This produces a single merged filled shape from the circle and rectangle.
+
+## Example: Intersection
+
+```cpp
+SkPathBuilder a;
+a.addCircle(120, 120, 70);
+
+SkPathBuilder b;
+b.addRect(SkRect::MakeXYWH(120, 70, 120, 120));
+
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorRED);
+
+if (auto result = Op(a.detach(), b.detach(), kIntersect_SkPathOp)) {
+    canvas->drawPath(*result, paint);
+}
+```
+
+![Intersection of a circle and rectangle](/img/image44.png)
+
+Only the area shared by both paths remains.
+
+## Example: Difference
+
+```cpp
+SkPathBuilder outer;
+outer.addCircle(140, 120, 80);
+
+SkPathBuilder cutout;
+cutout.addRect(SkRect::MakeXYWH(140, 60, 100, 120));
+
+SkPaint paint;
+paint.setAntiAlias(true);
+paint.setColor(SK_ColorBLACK);
+
+if (auto result = Op(outer.detach(), cutout.detach(), kDifference_SkPathOp)) {
+    canvas->drawPath(*result, paint);
+}
+```
+
+![Difference of a circle and rectangle](/img/image45.png)
+
+This subtracts the rectangle from the circle-like base shape.
+
+## `Simplify`: Normalize A Path
+
+```cpp
+std::optional<SkPath> Simplify(const SkPath& path);
+```
+
+Use `Simplify` when you already have one complex path and want Skia to rebuild it as cleaner, non-overlapping contours.
+
+This is useful for:
+
+- self-overlapping paths
+- shapes made from many appended contours
+- preparing geometry before later processing
+
+Example:
+
+```cpp
+SkPathBuilder p;
+p.addCircle(120, 120, 70);
+p.addCircle(170, 120, 70);
+
+if (auto simplified = Simplify(p.detach())) {
+    canvas->drawPath(*simplified, paint);
+}
+```
+
+![Simplified path](/img/image46.png)
+
+## `AsWinding`: Convert To Winding Fill Semantics
+
+```cpp
+std::optional<SkPath> AsWinding(const SkPath& path);
+```
+
+`AsWinding` returns a path with winding fill type that tries to preserve the same filled area as the input.
+
+This is most useful when:
+
+- your input path uses even-odd fill
+- another stage of your pipeline expects winding fill
+- you want a normalized fill-rule form before more processing
+
+Important limitation:
+
+`AsWinding` does not fully solve every case involving self-crossing contours or contour-to-contour crossings.
+
+## `SkOpBuilder`: Many Operations In Sequence
+
+When you need to combine many paths, especially unions, `SkOpBuilder` is the practical helper:
+
+```cpp
+SkOpBuilder builder;
+
+SkPathBuilder pathA;
+pathA.addRect(SkRect::MakeXYWH(120, 70, 120, 120));
+
+
+SkPathBuilder pathB;
+pathA.addRect(SkRect::MakeXYWH(100, 100, 200, 200));
+
+SkPathBuilder pathC;
+pathA.addCircle(50, 50, 100);
+
+builder.add(pathA.detach(), kUnion_SkPathOp);
+builder.add(pathB.detach(), kUnion_SkPathOp);
+builder.add(pathC.detach(), kUnion_SkPathOp);
+
+SkPaint paint;
+paint.setColor(SK_ColorRED);
+
+if (auto result = builder.resolve()) {
+    canvas->drawPath(*result, paint);
+}
+```
+
+![SkOpBuilder](/img/image47.png)
+
+Use this instead of repeatedly calling `Op` when:
+
+- you are merging many shapes
+- you want clearer incremental code
+- you want the builder's optimization path for multi-shape union work
+
+## Paint Style Matters
+
+Path ops are based on the filled area of the path, not how you later stroke it.
+
+That means:
+
+- boolean results are computed from geometry and fill rules
+- `SkPaint::kStroke_Style` does not change the operation itself
+- if you need stroke-like outlines to participate as filled regions, convert or construct them as filled geometry first
+
+## Common Gotchas
+
+- The order of operands matters for `kDifference_SkPathOp` and `kReverseDifference_SkPathOp`.
+- Always handle failure because `Op`, `Simplify`, `AsWinding`, and `resolve()` return `std::optional`.
+- Anti-aliasing affects drawing quality, not the boolean math.
+- Fill type can change the visible result, especially with self-overlapping contours.
+- If the result looks surprising, inspect the original contours and fill rules before assuming the operation is wrong.
+
+## Practical Pattern
+
+For most real Skia code, a good workflow is:
+
+1. build your `SkPath` shapes
+2. combine them with `Op` or `SkOpBuilder`
+3. optionally run `Simplify` if you need a cleaner path
+4. draw the result with `canvas->drawPath(...)`
+
+That gives you reusable vector geometry that can be filled, stroked, clipped, transformed, or reused later.

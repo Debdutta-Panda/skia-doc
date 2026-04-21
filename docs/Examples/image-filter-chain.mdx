@@ -1,0 +1,114 @@
+---
+sidebar_position: 8
+title: Skia Image Filter Chain Example
+description: Chain multiple SkImageFilters together in Skia to build soft, layered, composited visual effects.
+slug: /examples/image-filter-chain
+keywords:
+  - skia image filters
+  - skia blur example
+  - skia drop shadow example
+  - skia filter chain
+---
+
+# Skia Image Filter Chain Example
+
+Image filters are where a lot of real UI and illustration polish happens.
+
+This example builds a filter chain around one source image and a few painted shapes so you can see how layered filtering behaves.
+
+It demonstrates:
+
+- blur
+- drop shadow
+- color-filter-as-image-filter
+- composing multiple image filters
+
+## Example
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkData.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkPaint.h"
+#include "include/effects/SkColorMatrix.h"
+#include "include/effects/SkImageFilters.h"
+
+static sk_sp<SkImageFilter> MakeFilterChain() {
+    SkColorMatrix matrix;
+    matrix.setSaturation(0.25f);
+
+    auto desat = SkImageFilters::ColorFilter(
+        SkColorFilters::Matrix(matrix),
+        nullptr
+    );
+
+    auto blur = SkImageFilters::Blur(7.0f, 7.0f, desat);
+
+    auto shadow = SkImageFilters::DropShadow(
+        18.0f,
+        24.0f,
+        12.0f,
+        12.0f,
+        SkColorSetARGB(140, 20, 24, 40),
+        blur
+    );
+
+    return shadow;
+}
+
+void DrawScene(SkCanvas* canvas, const AppState& state) {
+    canvas->clear(SkColorSetRGB(242, 239, 233));
+
+    std::filesystem::path path = "C:\\Users\\deb\\Downloads\\small-cat.webp";
+    sk_sp<SkData> data = SkData::MakeFromFileName(path.string().c_str());
+    sk_sp<SkImage> image = data ? SkImages::DeferredFromEncodedData(data) : nullptr;
+
+    SkPaint card;
+    card.setAntiAlias(true);
+    card.setColor(SK_ColorWHITE);
+    card.setImageFilter(MakeFilterChain());
+
+    canvas->save();
+    canvas->translate(70, 60);
+    canvas->drawRoundRect(SkRect::MakeXYWH(0, 0, 320, 240), 28, 28, card);
+    if (image) {
+        canvas->drawImageRect(
+            image,
+            SkRect::MakeXYWH(18, 18, 284, 170),
+            SkSamplingOptions()
+        );
+    }
+    canvas->restore();
+
+    SkPaint glass;
+    glass.setAntiAlias(true);
+    glass.setColor(SkColorSetARGB(130, 255, 255, 255));
+    glass.setImageFilter(SkImageFilters::Blur(12.0f, 12.0f, nullptr));
+    canvas->drawRoundRect(SkRect::MakeXYWH(430, 90, 250, 160), 36, 36, glass);
+
+    SkPaint glow;
+    glow.setAntiAlias(true);
+    glow.setColor(SkColorSetRGB(238, 101, 72));
+    glow.setImageFilter(SkImageFilters::DropShadowOnly(
+        0, 0, 20, 20, SkColorSetARGB(180, 238, 101, 72), nullptr));
+    canvas->drawCircle(560, 340, 54, glow);
+
+    SkPaint core;
+    core.setAntiAlias(true);
+    core.setColor(SkColorSetRGB(255, 214, 163));
+    canvas->drawCircle(560, 340, 44, core);
+}
+```
+
+![](/img/image49.png)
+
+## What to notice
+
+- image filters apply to the drawn output, not just the raw source object
+- chaining lets you build more nuanced results than one filter alone
+- drop shadow plus blur is a good practical starting point for card-like UI
+
+## Related pages
+
+- [SkPaint Basics](/docs/paint)
+- [Skia Image Adjustments Example](/docs/examples/image-adjustments)

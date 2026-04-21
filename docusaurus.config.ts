@@ -1,6 +1,27 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
+import type {Plugin} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+
+function disableBrokenWebpackBar(): Plugin<void> {
+  return {
+    name: 'disable-broken-webpackbar',
+    configureWebpack(config, _isServer, {currentBundler}) {
+      if (currentBundler.name !== 'webpack') {
+        return undefined;
+      }
+
+      return {
+        plugins: (config.plugins ?? []).filter(
+          (plugin) => plugin?.constructor?.name !== 'WebpackBarPlugin',
+        ),
+        mergeStrategy: {
+          plugins: 'replace',
+        },
+      };
+    },
+  };
+}
 
 const config: Config = {
   title: 'Skia C++ Docs',
@@ -11,6 +32,7 @@ const config: Config = {
 
   future: {
     v4: true,
+    faster: false,
   },
 
   url: 'https://debdutta-panda.github.io',
@@ -41,6 +63,8 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
+
+  plugins: [disableBrokenWebpackBar],
 
   themeConfig: {
     image: 'img/logo.png',

@@ -1,0 +1,128 @@
+---
+sidebar_position: 10
+title: Skia Picture Recording and Replay Example
+description: Record drawing commands into an SkPicture, replay them into multiple canvases, and export snapshots from reused scene content.
+slug: /examples/picture-recording-replay
+keywords:
+  - skia picture recorder
+  - skia picture example
+  - skia replay drawing
+  - skia scene caching
+---
+
+# Skia Picture Recording and Replay Example
+
+`SkPictureRecorder` is useful when you want to capture a reusable drawing scene and replay it later.
+
+This example shows a small pattern that is valuable in tools, previews, thumbnails, and export workflows.
+
+It demonstrates:
+
+- recording a scene once
+- replaying it multiple times at different scales
+- snapshotting a surface after replay
+
+## Example
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkPicture.h"
+#include "include/core/SkPictureRecorder.h"
+#include "include/core/SkSurface.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkData.h"
+#include "include/encode/SkPngEncoder.h"
+
+static sk_sp<SkPicture> BuildBadgePicture(skiaexplorer::FontSystem& fonts) {
+    SkPictureRecorder recorder;
+    SkCanvas* canvas = recorder.beginRecording(SkRect::MakeWH(260, 180));
+
+    canvas->clear(SK_ColorTRANSPARENT);
+
+    SkPaint card;
+    card.setAntiAlias(true);
+    card.setColor(SkColorSetRGB(247, 242, 230));
+    canvas->drawRoundRect(SkRect::MakeXYWH(10, 10, 240, 160), 24, 24, card);
+
+    SkPaint accent;
+    accent.setAntiAlias(true);
+    accent.setColor(SkColorSetRGB(69, 109, 204));
+    canvas->drawCircle(66, 72, 34, accent);
+
+    SkPaint warm;
+    warm.setAntiAlias(true);
+    warm.setColor(SkColorSetRGB(239, 129, 72));
+    canvas->drawRoundRect(SkRect::MakeXYWH(120, 38, 90, 24), 12, 12, warm);
+
+    SkPaint textPaint;
+    textPaint.setAntiAlias(true);
+    textPaint.setColor(SkColorSetRGB(34, 34, 34));
+
+    SkFont title(fonts.MatchTypeface("Segoe UI", SkFontStyle::Bold()), 24.0f);
+    SkFont body(fonts.MatchTypeface("Segoe UI", SkFontStyle()), 16.0f);
+
+    canvas->drawString("Recorded Scene", 28, 132, title, textPaint);
+    canvas->drawString("Replay into UI, export, or thumbnails", 28, 154, body, textPaint);
+
+    return recorder.finishRecordingAsPicture();
+}
+
+static sk_sp<SkImage> RenderPicturePreview(sk_sp<SkPicture> picture, int w, int h) {
+    auto surface = SkSurfaces::Raster(SkImageInfo::MakeN32Premul(w, h));
+    if (!surface) {
+        return nullptr;
+    }
+
+    SkCanvas* canvas = surface->getCanvas();
+    canvas->clear(SkColorSetRGB(238, 236, 232));
+
+    canvas->save();
+    canvas->translate(40, 30);
+    canvas->drawPicture(picture);
+    canvas->restore();
+
+    canvas->save();
+    canvas->translate(390, 38);
+    canvas->scale(0.55f, 0.55f);
+    canvas->drawPicture(picture);
+    canvas->restore();
+
+    canvas->save();
+    canvas->translate(430, 200);
+    canvas->scale(0.32f, 0.32f);
+    canvas->rotate(8.0f);
+    canvas->drawPicture(picture);
+    canvas->restore();
+
+    return surface->makeImageSnapshot();
+}
+
+bool SaveReplayPreview(const char* path, skiaexplorer::FontSystem& fonts) {
+    sk_sp<SkPicture> picture = BuildBadgePicture(fonts);
+    sk_sp<SkImage> image = RenderPicturePreview(std::move(picture), 760, 420);
+    if (!image) {
+        return false;
+    }
+
+    sk_sp<SkData> png = SkPngEncoder::Encode(nullptr, image.get(), {});
+    if (!png) {
+        return false;
+    }
+
+    SkFILEWStream out(path);
+    return out.isValid() && out.write(png->data(), png->size());
+}
+```
+
+## When this pattern helps
+
+- expensive static scene fragments
+- repeated badges, cards, stamps, or templates
+- export pipelines that want one canonical scene definition
+- thumbnail generation at many scales
+
+## Related pages
+
+- [Save Image Output from Skia](/docs/image-output)
+- [SkCanvas Drawing APIs](/docs/canvas-apis)
+
