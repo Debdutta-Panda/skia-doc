@@ -1,7 +1,7 @@
 ---
 sidebar_position: 9
 title: Skia Color, Mask, and Blend Effects Comparison
-description: Compare color filters, mask filters, and blend modes in one Skia scene to understand what each effect family actually changes.
+description: Compare Skia color filters, mask filters, and blend modes side by side to see exactly what each paint effect changes.
 slug: /examples/paint-effects-comparison
 keywords:
   - skia color filter example
@@ -18,7 +18,7 @@ These three effect families are often mixed up:
 - mask filters affect coverage and edge softness
 - blend modes change how new pixels combine with existing pixels
 
-This page compares them side by side.
+This Skia paint effects comparison page shows them side by side.
 
 ## Example
 
@@ -131,7 +131,7 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 }
 ```
 
-![](/img/image48.png)
+![Skia paint effects comparison grid showing original motif, color filter, mask blur, and blend mode variants](/img/image48.png)
 
 ## What this comparison teaches
 
@@ -143,4 +143,5 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 
 - [SkPaint Basics](/docs/paint)
 - [SkCanvas Drawing APIs](/docs/canvas-apis)
-
+- [Skia Shader Gallery Example](/docs/examples/shader-gallery)
+- [Skia Image Filter Chain Example](/docs/examples/image-filter-chain)

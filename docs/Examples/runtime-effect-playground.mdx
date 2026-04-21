@@ -1,7 +1,7 @@
 ---
 sidebar_position: 7
 title: Skia RuntimeEffect and SkSL Playground Example
-description: Build a practical SkRuntimeEffect demo with uniforms, animated parameters, and multiple draw targets.
+description: Build a practical SkRuntimeEffect and SkSL playground with animated uniforms, reusable shaders, and multiple draw targets.
 slug: /examples/runtime-effect-playground
 keywords:
   - skia runtime effect example
@@ -14,7 +14,7 @@ keywords:
 
 `SkRuntimeEffect` is the fastest way to move from built-in Skia effects to custom shader logic.
 
-This example shows a simple interactive-style shader scene with:
+This Skia RuntimeEffect example shows a simple interactive-style shader scene with:
 
 - one SkSL shader
 - named uniform binding via `SkRuntimeShaderBuilder`
@@ -115,7 +115,7 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 }
 ```
 
-![](/img/image51.png)
+![Skia RuntimeEffect and SkSL playground output with animated panel, circular overlay, and rotated rectangle](/img/image51.png)
 
 ## Why this example matters
 
@@ -133,3 +133,5 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 
 - [Skia Image Adjustments Example](/docs/examples/image-adjustments)
 - [SkPaint Basics](/docs/paint)
+- [Skia Shader Gallery Example](/docs/examples/shader-gallery)
+- [Skia Image Filter Chain Example](/docs/examples/image-filter-chain)

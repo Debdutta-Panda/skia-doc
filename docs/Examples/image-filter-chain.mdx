@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
 title: Skia Image Filter Chain Example
-description: Chain multiple SkImageFilters together in Skia to build soft, layered, composited visual effects.
+description: Chain blur, drop shadow, and color filters in one Skia image filter pipeline to build layered composited effects.
 slug: /examples/image-filter-chain
 keywords:
   - skia image filters
@@ -14,7 +14,7 @@ keywords:
 
 Image filters are where a lot of real UI and illustration polish happens.
 
-This example builds a filter chain around one source image and a few painted shapes so you can see how layered filtering behaves.
+This Skia image filter chain example builds a filter pipeline around one source image and a few painted shapes so you can see layered filtering behavior.
 
 It demonstrates:
 
@@ -100,7 +100,7 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 }
 ```
 
-![](/img/image49.png)
+![Skia image filter chain output showing blurred card, drop shadow depth, and glow accents](/img/image49.png)
 
 ## What to notice
 
@@ -112,3 +112,5 @@ void DrawScene(SkCanvas* canvas, const AppState& state) {
 
 - [SkPaint Basics](/docs/paint)
 - [Skia Image Adjustments Example](/docs/examples/image-adjustments)
+- [Skia Color, Mask, and Blend Effects Comparison](/docs/examples/paint-effects-comparison)
+- [Skia Picture Recording and Replay Example](/docs/examples/picture-recording-replay)

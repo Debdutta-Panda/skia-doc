@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
 title: Skia Picture Recording and Replay Example
-description: Record drawing commands into an SkPicture, replay them into multiple canvases, and export snapshots from reused scene content.
+description: Record drawing commands into SkPicture, replay them at multiple scales, and export reusable scene snapshots in Skia.
 slug: /examples/picture-recording-replay
 keywords:
   - skia picture recorder
@@ -12,7 +12,7 @@ keywords:
 
 # Skia Picture Recording and Replay Example
 
-`SkPictureRecorder` is useful when you want to capture a reusable drawing scene and replay it later.
+This Skia picture recording example uses `SkPictureRecorder` to capture a reusable drawing scene and replay it later.
 
 This example shows a small pattern that is valuable in tools, previews, thumbnails, and export workflows.
 
@@ -125,4 +125,5 @@ bool SaveReplayPreview(const char* path, skiaexplorer::FontSystem& fonts) {
 
 - [Save Image Output from Skia](/docs/image-output)
 - [SkCanvas Drawing APIs](/docs/canvas-apis)
-
+- [Skia Image Filter Chain Example](/docs/examples/image-filter-chain)
+- [Skia Shader Gallery Example](/docs/examples/shader-gallery)
