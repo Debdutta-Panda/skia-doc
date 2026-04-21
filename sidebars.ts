@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
         'Examples/shader-gallery',
         'Examples/runtime-effect-playground',
         'Examples/image-filter-chain',
+        'Examples/glass-effect',
         'Examples/paint-effects-comparison',
         'Examples/picture-recording-replay',
         'Examples/pdf-export',

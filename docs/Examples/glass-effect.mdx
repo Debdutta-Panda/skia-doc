@@ -1,0 +1,206 @@
+---
+sidebar_position: 11
+title: Skia Glass Effect Minimal Demo
+description: Minimal real Skia frosted glass effect using a background snapshot, SkImageFilters::Blur, rounded clipping, tint, border, and highlight.
+slug: /examples/glass-effect
+keywords:
+  - skia glass effect
+  - skia glassmorphism
+  - skia backdrop blur
+  - skia image filter blur
+  - skia rounded rectangle
+---
+
+# Skia Glass Effect Minimal Demo
+
+This is a real frosted-glass effect, not just a translucent white rectangle.
+
+The important part is that the scene is drawn first, then captured with
+`SkSurface::makeImageSnapshot()`, blurred with `SkImages::MakeWithFilter(...)` and
+`SkImageFilters::Blur(...)`, and drawn back only inside the rounded panel clip.
+
+This avoids `SkRRect` and `SaveLayerRec` backdrop overloads. It uses `SkPath::RRect(...)` for the
+rounded clip.
+
+## Complete Minimal PNG Program
+
+```cpp
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColor.h"
+#include "include/core/SkFont.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkImageInfo.h"
+#include "include/core/SkIRect.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkPath.h"
+#include "include/core/SkPoint.h"
+#include "include/core/SkRect.h"
+#include "include/core/SkStream.h"
+#include "include/core/SkSurface.h"
+#include "include/effects/SkImageFilters.h"
+#include "include/encode/SkPngEncoder.h"
+
+static void DrawBackground(SkCanvas* canvas, int width, int height) {
+    SkPaint bg;
+    bg.setColor(SkColorSetRGB(25, 36, 58));
+    canvas->drawPaint(bg);
+
+    SkPaint band;
+    band.setColor(SkColorSetRGB(28, 108, 132));
+    canvas->drawRect(SkRect::MakeXYWH(0, 0, width, height * 0.62f), band);
+
+    band.setColor(SkColorSetRGB(242, 100, 83));
+    canvas->drawRect(SkRect::MakeXYWH(0, height * 0.62f, width, height * 0.38f), band);
+
+    SkPaint blob;
+    blob.setAntiAlias(true);
+    blob.setColor(SkColorSetARGB(210, 255, 196, 90));
+    canvas->drawCircle(160, 150, 92, blob);
+
+    blob.setColor(SkColorSetARGB(190, 91, 204, 255));
+    canvas->drawCircle(520, 150, 126, blob);
+
+    blob.setColor(SkColorSetARGB(180, 232, 74, 124));
+    canvas->drawCircle(430, 405, 135, blob);
+
+    SkPaint stripe;
+    stripe.setAntiAlias(true);
+    stripe.setStrokeWidth(18);
+    stripe.setStrokeCap(SkPaint::kRound_Cap);
+    stripe.setColor(SkColorSetARGB(125, 255, 255, 255));
+    for (int i = -1; i < 8; ++i) {
+        const SkScalar y = 80.0f + i * 62.0f;
+        canvas->drawLine(40, y, 720, y + 145, stripe);
+    }
+}
+
+static void DrawGlassPanel(SkCanvas* canvas, sk_sp<SkImage> backdrop, const SkRect& rect) {
+    const SkScalar radius = 34.0f;
+    const SkPath clip = SkPath::RRect(rect, radius, radius);
+
+    SkPaint shadow;
+    shadow.setAntiAlias(true);
+    shadow.setColor(SkColorSetARGB(58, 0, 0, 0));
+    canvas->drawRoundRect(rect.makeOffset(0, 14), radius, radius, shadow);
+
+    if (backdrop) {
+        auto blur = SkImageFilters::Blur(18.0f, 18.0f, nullptr);
+
+        if (blur) {
+            SkIRect outSubset;
+            SkIPoint offset;
+            sk_sp<SkImage> blurred = SkImages::MakeWithFilter(
+                backdrop,
+                blur.get(),
+                backdrop->bounds(),
+                backdrop->bounds(),
+                &outSubset,
+                &offset);
+
+            if (blurred) {
+                canvas->save();
+                canvas->clipPath(clip, true);
+                canvas->drawImage(blurred, offset.x(), offset.y());
+                canvas->restore();
+            }
+        }
+    }
+
+    SkPaint tint;
+    tint.setAntiAlias(true);
+    tint.setColor(SkColorSetARGB(70, 255, 255, 255));
+    canvas->drawRoundRect(rect, radius, radius, tint);
+
+    SkPaint shade;
+    shade.setAntiAlias(true);
+    shade.setColor(SkColorSetARGB(20, 0, 0, 0));
+    canvas->drawRoundRect(rect.makeInset(2, 2), radius - 2, radius - 2, shade);
+
+    SkPaint border;
+    border.setAntiAlias(true);
+    border.setStyle(SkPaint::kStroke_Style);
+    border.setStrokeWidth(1.5f);
+    border.setColor(SkColorSetARGB(150, 255, 255, 255));
+    canvas->drawRoundRect(rect, radius, radius, border);
+
+    SkPaint highlight;
+    highlight.setAntiAlias(true);
+    highlight.setStrokeWidth(3.0f);
+    highlight.setStrokeCap(SkPaint::kRound_Cap);
+    highlight.setColor(SkColorSetARGB(150, 255, 255, 255));
+    canvas->drawLine(rect.left() + 34, rect.top() + 26, rect.right() - 92, rect.top() + 26, highlight);
+}
+
+int main() {
+    constexpr int width = 760;
+    constexpr int height = 520;
+
+    auto surface = SkSurfaces::Raster(SkImageInfo::MakeN32Premul(width, height));
+    if (!surface) {
+        return 1;
+    }
+
+    SkCanvas* canvas = surface->getCanvas();
+    DrawBackground(canvas, width, height);
+    sk_sp<SkImage> backdrop = surface->makeImageSnapshot();
+    DrawGlassPanel(canvas, backdrop, SkRect::MakeXYWH(190, 125, 380, 260));
+
+    SkPaint text;
+    text.setAntiAlias(true);
+    text.setColor(SkColorSetARGB(235, 255, 255, 255));
+
+    SkFont title(nullptr, 34);
+    canvas->drawString("Glass panel", 244, 250, title, text);
+
+    SkFont body(nullptr, 18);
+    canvas->drawString("Backdrop blur + translucent paint", 244, 286, body, text);
+
+    sk_sp<SkImage> image = surface->makeImageSnapshot();
+    SkFILEWStream out("glass-effect.png");
+    return SkPngEncoder::Encode(&out, image.get(), SkPngEncoder::Options{}) ? 0 : 1;
+}
+```
+
+![](/img/image52.png)
+
+## The Essential Part
+
+```cpp
+sk_sp<SkImage> backdrop = surface->makeImageSnapshot();
+auto blur = SkImageFilters::Blur(18.0f, 18.0f, nullptr);
+
+const SkScalar radius = 34.0f;
+const SkPath clip = SkPath::RRect(rect, radius, radius);
+
+if (backdrop && blur) {
+    SkIRect outSubset;
+    SkIPoint offset;
+    sk_sp<SkImage> blurred = SkImages::MakeWithFilter(
+        backdrop,
+        blur.get(),
+        backdrop->bounds(),
+        backdrop->bounds(),
+        &outSubset,
+        &offset);
+
+    if (blurred) {
+        canvas->save();
+        canvas->clipPath(clip, true);
+        canvas->drawImage(blurred, offset.x(), offset.y());
+        canvas->restore();
+    }
+}
+
+// Then draw translucent tint, border, and highlight on top.
+```
+
+This is the actual backdrop blur step. The panel is glass because it contains a blurred copy of
+what was already behind it.
+
+## Practical Notes
+
+- `surface->makeImageSnapshot()` must happen after the background is drawn and before the panel is drawn.
+- `SkImages::MakeWithFilter(...)` is doing the CPU-side image-filter operation here.
+- `clipPath(...)` keeps the blurred backdrop inside the rounded panel shape.
+- The tint, border, shadow, and highlight are still needed; blur alone does not read as glass.
+- Keep the busy background; glass effects only read visually as glass when there is detail behind them.
