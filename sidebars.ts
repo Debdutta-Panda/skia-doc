@@ -32,6 +32,7 @@ const sidebars: SidebarsConfig = {
         'Examples/runtime-effect-playground',
         'Examples/image-filter-chain',
         'Examples/glass-effect',
+        'Examples/text-to-path',
         'Examples/paint-effects-comparison',
         'Examples/picture-recording-replay',
         'Examples/pdf-export',
